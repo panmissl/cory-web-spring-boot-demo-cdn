@@ -12,10 +12,7 @@ const Model = {
   },
   effects: {
     *login({ payload }, { call, put }) {
-      const success = yield call(doLogin, payload);
-      if (!success) {
-        return;
-      }
+      yield call(doLogin, payload);
       
       const currentUser = queryCurrentUser();
       yield put({

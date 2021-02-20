@@ -2,7 +2,7 @@ import { parse } from 'querystring';
 import request from '@/utils/request';
 /* eslint no-useless-escape:0 import/prefer-default-export:0 */
 
-const DEBUG = true;
+const DEBUG = window.DEBUG_MODE || false;
 const CSRF_TOKEN_NAME = "_csrf";
 const FORM_TOKEN_NAME = "__form_token__";
 
