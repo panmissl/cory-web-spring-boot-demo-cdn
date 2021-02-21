@@ -59,9 +59,6 @@ const PageHeaderContent = ({ currentUser }) => {
           {currentUser.name}
           ，祝你开心每一天！
         </div>
-        <div>
-          {currentUser.title} |{currentUser.group}
-        </div>
       </div>
     </div>
   );
@@ -134,12 +131,10 @@ class Workplace extends Component {
       currentUser,
       activities,
       projectNotice,
-      projectLoading,
-      activitiesLoading,
       radarData,
     } = this.props;
 
-    if (!currentUser || !currentUser.userid) {
+    if (!currentUser || !currentUser.name) {
       return null;
     }
 
@@ -158,7 +153,6 @@ class Workplace extends Component {
               title="进行中的项目"
               bordered={false}
               extra={<Link to="/">全部项目</Link>}
-              loading={projectLoading}
               bodyStyle={{
                 padding: 0,
               }}
@@ -199,10 +193,8 @@ class Workplace extends Component {
               bordered={false}
               className={styles.activeCard}
               title="动态"
-              loading={activitiesLoading}
             >
               <List
-                loading={activitiesLoading}
                 renderItem={(item) => this.renderActivities(item)}
                 dataSource={activities}
                 className={styles.activitiesList}
@@ -242,7 +234,6 @@ class Workplace extends Component {
               }}
               bordered={false}
               title="团队"
-              loading={projectLoading}
             >
               <div className={styles.members}>
                 <Row gutter={48}>
@@ -265,13 +256,10 @@ class Workplace extends Component {
 }
 
 export default connect(
-  ({ dashboardAndworkplace: { currentUser, projectNotice, activities, radarData }, loading }) => ({
+  ({ dashboardAndworkplace: { projectNotice, activities, radarData }, user: { currentUser}, loading }) => ({
     currentUser,
     projectNotice,
     activities,
     radarData,
-    currentUserLoading: loading.effects['dashboardAndworkplace/fetchUserCurrent'],
-    projectLoading: loading.effects['dashboardAndworkplace/fetchProjectNotice'],
-    activitiesLoading: loading.effects['dashboardAndworkplace/fetchActivitiesList'],
   }),
 )(Workplace);

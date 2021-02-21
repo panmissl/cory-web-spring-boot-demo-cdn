@@ -87,6 +87,42 @@ export default defineConfig({
               component: './dashboard/workplace',
             },
             {
+              name: '系统管理',
+              icon: 'setting',
+              routes: [
+                {
+                  name: '系统配置',
+                  path: '/base/systemconfig',
+                  component: './base/SystemConfig',
+                },
+                {
+                  name: '数据字典',
+                  path: '/base/datadict',
+                  component: './base/DataDict',
+                },
+                {
+                  name: '用户管理',
+                  path: '/base/user',
+                  component: './base/User',
+                },
+                {
+                  name: '角色管理',
+                  path: '/base/role',
+                  component: './base/Role',
+                },
+                {
+                  name: '资源管理',
+                  path: '/base/resource',
+                  component: './base/Resource',
+                },
+                {
+                  name: '反馈管理',
+                  path: '/base/feedback',
+                  component: './base/Feedback',
+                },
+              ],
+            },
+            {
               redirect: '/error/404'
             },
           ],

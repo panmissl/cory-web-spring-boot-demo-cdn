@@ -46,6 +46,12 @@ const UserModel = {
   reducers: {
     saveCurrentUser(state, { payload }) {
       const { currentUser, loginError, localUser } = payload;
+
+      if (currentUser) {
+        currentUser.avatar = 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png';
+        currentUser.name = currentUser.phone || currentUser.email;
+      }
+
       setAuthority(payload.currentAuthority);
       return { ...state, currentUser, loginError, localUser };
     },

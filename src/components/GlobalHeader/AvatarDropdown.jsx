@@ -27,12 +27,7 @@ const AvatarDropdown = props => {
 
   const { currentUser, menu, dispatch } = props;
 
-  console.log('-----currentUser', currentUser);
-
-  if (currentUser) {
-    currentUser.avatar = 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png';
-    currentUser.name = currentUser.phone || currentUser.email;
-  } else {
+  if (!currentUser) {
     useEffect(() => {
       dispatch({
         type: 'user/queryCurrentUser',

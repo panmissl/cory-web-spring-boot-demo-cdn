@@ -11,16 +11,16 @@ import ProLayout, { SettingDrawer } from '@ant-design/pro-layout';
 import { getMatchMenu } from '@umijs/route-utils';
 import { Button, Result } from 'antd';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { connect, history, Link, useIntl } from 'umi';
-import logo from '../assets/logo.png';
+import { connect, history, Link } from 'umi';
+
 const noMatch = (
   <Result
     status={403}
     title="403"
-    subTitle="Sorry, you are not authorized to access this page."
+    subTitle="您没有权限访问此页面."
     extra={
       <Button type="primary">
-        <Link to="/user/login">Go Login</Link>
+        <Link to="/login">登录</Link>
       </Button>
     }
   />
@@ -47,6 +47,7 @@ const BasicLayout = (props) => {
     dispatch,
     children,
     settings,
+    currentUser,
     location = {
       pathname: '/',
     },
@@ -55,25 +56,6 @@ const BasicLayout = (props) => {
   initMeta();
 
   const menuDataRef = useRef([]);
-  useEffect(() => {
-    if (dispatch) {
-      dispatch({
-        type: 'user/fetchCurrent',
-      });
-    }
-  }, []);
-  /**
-   * init variables
-   */
-
-  const handleMenuCollapse = (payload) => {
-    if (dispatch) {
-      dispatch({
-        type: 'global/changeLayoutCollapsed',
-        payload,
-      });
-    }
-  }; // get children authority
 
   const authorized = useMemo(
     () =>
@@ -82,14 +64,38 @@ const BasicLayout = (props) => {
       },
     [location.pathname],
   );
-  const { formatMessage } = useIntl();
+
+  if (!currentUser) {
+    /*这里不能用useEffect，因为用了useRef：https://segmentfault.com/a/1190000022341755
+    useEffect(() => {
+      dispatch({
+        type: 'user/queryCurrentUser',
+      });
+    }, []);
+    */
+    dispatch({
+      type: 'user/queryCurrentUser',
+    });
+  }
+
+
+  const handleMenuCollapse = (payload) => {
+    if (dispatch) {
+      dispatch({
+        type: 'global/changeLayoutCollapsed',
+        payload,
+      });
+    }
+  };
+
   return (
     <>
       <ProLayout
-        logo={logo}
-        formatMessage={formatMessage}
+        formatMessage={null}
         {...props}
         {...settings}
+        title={currentUser ? currentUser.name : ''}
+        logo={currentUser ? currentUser.avatar : ''}
         onCollapse={handleMenuCollapse}
         onMenuHeaderClick={() => history.push('/')}
         menuItemRender={(menuItemProps, defaultDom) => {
@@ -106,9 +112,7 @@ const BasicLayout = (props) => {
         breadcrumbRender={(routers = []) => [
           {
             path: '/',
-            breadcrumbName: formatMessage({
-              id: 'menu.home',
-            }),
+            breadcrumbName: '首页',
           },
           ...routers,
         ]}
@@ -145,7 +149,8 @@ const BasicLayout = (props) => {
   );
 };
 
-export default connect(({ global, settings }) => ({
+export default connect(({ global, settings, user }) => ({
   collapsed: global.collapsed,
   settings,
+  currentUser: user.currentUser,
 }))(BasicLayout);
