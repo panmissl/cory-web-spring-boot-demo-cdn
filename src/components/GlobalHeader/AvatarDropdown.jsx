@@ -32,6 +32,9 @@ class AvatarDropdown extends React.Component {
       },
       menu,
     } = this.props;
+    currentUser.avatar = 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png';
+    currentUser.name = currentUser.phone || currentUser.email;
+
     const menuHeaderDropdown = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={this.onMenuClick}>
         {menu && (

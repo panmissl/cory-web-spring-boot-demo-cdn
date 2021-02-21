@@ -16,3 +16,7 @@ export async function doLogin(params) {
     data: params,
   });
 }
+
+export async function doLogout() {
+  return request('/logout');
+}

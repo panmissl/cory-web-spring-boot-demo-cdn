@@ -7,7 +7,7 @@ const proSettings = {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: window.siteName,
+  title: "你好",
   pwa: false,
   iconfontUrl: '',
 };

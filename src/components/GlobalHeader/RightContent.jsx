@@ -1,11 +1,8 @@
-import { Tooltip, Tag } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
+import { Tag } from 'antd';
 import React from 'react';
-import { connect, SelectLang } from 'umi';
+import { connect } from 'umi';
 import Avatar from './AvatarDropdown';
-import HeaderSearch from '../HeaderSearch';
 import styles from './index.less';
-import NoticeIconView from './NoticeIconView';
 const ENVTagColor = {
   dev: 'orange',
   test: 'green',
@@ -22,6 +19,7 @@ const GlobalHeaderRight = (props) => {
 
   return (
     <div className={className}>
+      {/*
       <HeaderSearch
         className={`${styles.action} ${styles.search}`}
         placeholder="站内搜索"
@@ -61,13 +59,14 @@ const GlobalHeaderRight = (props) => {
         </a>
       </Tooltip>
       <NoticeIconView />
+      */}
       <Avatar menu />
       {REACT_APP_ENV && (
         <span>
           <Tag color={ENVTagColor[REACT_APP_ENV]}>{REACT_APP_ENV}</Tag>
         </span>
       )}
-      <SelectLang className={styles.action} />
+      {/*<SelectLang className={styles.action} />*/}
     </div>
   );
 };

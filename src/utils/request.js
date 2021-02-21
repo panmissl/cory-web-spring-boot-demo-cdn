@@ -27,10 +27,10 @@ const codeMessage = {
  * 异常处理程序
  */
 
-const errorHandler = (error) => {
-  error(JSON.stringify(error));
+const errorHandler = (e) => {
+  error(e);
 
-  const { response } = error;
+  const { response } = e;
 
   if (response && response.status) {
     const errorText = codeMessage[response.status] || response.statusText;

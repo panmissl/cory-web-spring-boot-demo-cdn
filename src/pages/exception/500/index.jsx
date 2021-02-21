@@ -8,10 +8,10 @@ export default () => (
     style={{
       background: 'none',
     }}
-    subTitle="Sorry, the server is reporting an error."
+    subTitle="服务器发生错误，请稍后再试或联系管理员处理."
     extra={
       <Link to="/">
-        <Button type="primary">Back Home</Button>
+        <Button type="primary">返回首页</Button>
       </Link>
     }
   />

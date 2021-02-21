@@ -8,10 +8,10 @@ export default () => (
     style={{
       background: 'none',
     }}
-    subTitle="Sorry, you don't have access to this page."
+    subTitle="您没有权限访问此页面的数据，请联系管理员授权."
     extra={
       <Link to="/">
-        <Button type="primary">Back to home</Button>
+        <Button type="primary">返回首页</Button>
       </Link>
     }
   />

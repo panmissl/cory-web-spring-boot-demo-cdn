@@ -1,7 +1,7 @@
 import { LockTwoTone, UserOutlined } from '@ant-design/icons';
 import ProForm, { ProFormText } from '@ant-design/pro-form';
 import { Alert, message } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'umi';
 import { getPageQuery } from '@/utils/utils';
 import styles from './index.less';
@@ -54,11 +54,12 @@ const Login = (props) => {
 
   console.log('loginResult', loginResult);
 
-  if (!init && !getLoggedInUser) {
+  useEffect(() => {
     dispatch({
       type: 'login/currentUser',
     });
-  }
+  }, []);
+
   if (init && getLoggedInUser && currentUser) {
     loginSuccess(false);
     return null;

@@ -1,4 +1,4 @@
-import { doLogin } from '@/services/login';
+import { doLogin, doLogout } from '@/services/login';
 import { queryCurrentUser } from '@/services/user';
 import { setAuthority } from '@/utils/authority';
 import { getPageQuery, log } from '@/utils/utils';
@@ -26,17 +26,9 @@ const Model = {
       }); // Login successfully
     },
 
-    logout() {
-      const { redirect } = getPageQuery(); // Note: There may be security issues, please note
-
-      if (window.location.pathname !== '/user/login' && !redirect) {
-        history.replace({
-          pathname: '/user/login',
-          search: stringify({
-            redirect: window.location.href,
-          }),
-        });
-      }
+    *logout() {
+      yield doLogout();
+      window.location.href = '/login';
     },
   },
   reducers: {
