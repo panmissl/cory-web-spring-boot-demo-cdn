@@ -1,20 +1,16 @@
 import request from '@/utils/request';
 
-/* original mock api */
-export async function query() {
-  return request('/api/users');
-}
-
-/* original mock api */
-export async function queryCurrent() {
-  return request('/api/currentUser');
-}
-
-/* original mock api */
-export async function queryNotices() {
-  return request('/api/notices');
-}
-
 export async function queryCurrentUser() {
   return request('/currentUser');
+}
+
+export async function doLogin(params) {
+  return request('/doLogin', {
+    method: 'POST',
+    data: params,
+  });
+}
+
+export async function doLogout() {
+  return request('/logout');
 }

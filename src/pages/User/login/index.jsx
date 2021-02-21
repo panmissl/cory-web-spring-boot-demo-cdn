@@ -49,30 +49,28 @@ const loginSuccess = (showTip) => {
 };
 
 const Login = (props) => {
-  const { loginResult = { init: false, getLoggedInUser: false, login: false }, submitting, dispatch } = props;
-  const { currentUser, success, getLoggedInUser, login, init } = loginResult;
+  const { loginInfo = { }, submitting, dispatch } = props;
+  const { currentUser, loginError, localUser } = loginInfo;
 
-  console.log('loginResult', loginResult);
+  console.log('loginInfo', loginInfo);
 
-  useEffect(() => {
-    dispatch({
-      type: 'login/currentUser',
-    });
-  }, []);
-
-  if (init && getLoggedInUser && currentUser) {
-    loginSuccess(false);
-    return null;
+  if (!currentUser) {
+    useEffect(() => {
+      dispatch({
+        type: 'user/queryCurrentUser',
+      });
+    }, []);
   }
-  if (init && login && success) {
-    loginSuccess(true);
+
+  if (currentUser) {
+    loginSuccess(!localUser);
     return null;
   }
 
   const handleSubmit = (values) => {
     const { dispatch } = props;
     dispatch({
-      type: 'login/login',
+      type: 'user/login',
       payload: { ...values },
     });
   };
@@ -98,12 +96,12 @@ const Login = (props) => {
           return Promise.resolve();
         }}
       >
-        {init && login && !success && (
+        {loginError && (
           <LoginMessage
             content={'登录失败，账户或密码错误，请重新输入'}
           />
         )}
-        {/*init & login && !success && !submitting && (
+        {/*loginError && !submitting && (
           <LoginMessage content="验证码错误" />
         )*/}
         <ProFormText
@@ -158,7 +156,7 @@ const Login = (props) => {
   );
 };
 
-export default connect(({ login, loading }) => ({
-  loginResult: login,
-  submitting: loading.effects['login/login'],
+export default connect(({ user, loading }) => ({
+  loginInfo: user,
+  submitting: loading.effects['user/login'],
 }))(Login);
