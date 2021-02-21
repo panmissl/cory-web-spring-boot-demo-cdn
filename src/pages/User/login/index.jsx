@@ -1,8 +1,9 @@
 import { LockTwoTone, UserOutlined } from '@ant-design/icons';
 import ProForm, { ProFormText } from '@ant-design/pro-form';
-import { Alert } from 'antd';
+import { Alert, message } from 'antd';
 import React from 'react';
 import { connect } from 'umi';
+import { getPageQuery } from '@/utils/utils';
 import styles from './index.less';
 
 const LoginMessage = ({ content }) => (
@@ -16,9 +17,56 @@ const LoginMessage = ({ content }) => (
   />
 );
 
+const redirect = () => {
+  const urlParams = new URL(window.location.href);
+  const params = getPageQuery();
+  let { redirect } = params;
+
+  if (redirect) {
+    const redirectUrlParams = new URL(redirect);
+
+    if (redirectUrlParams.origin === urlParams.origin) {
+      redirect = redirect.substr(urlParams.origin.length);
+
+      if (redirect.match(/^\/.*#/)) {
+        redirect = redirect.substr(redirect.indexOf('#') + 1);
+      }
+    } else {
+      window.location.href = '/';
+      return;
+    }
+  }
+
+  window.location.href = '/';
+};
+
+const loginSuccess = (showTip) => {
+  if (showTip) {
+    message.success('🎉 🎉 🎉  登录成功！', 1).then(() => redirect());
+  } else {
+    redirect();
+  }
+};
+
 const Login = (props) => {
-  const { userLogin = {}, submitting } = props;
-  const { status } = userLogin;
+  const { loginResult = { init: false, getLoggedInUser: false, login: false }, submitting, dispatch } = props;
+  const { currentUser, success, getLoggedInUser, login, init } = loginResult;
+
+  console.log('loginResult', loginResult);
+
+  if (!init && !getLoggedInUser) {
+    dispatch({
+      type: 'login/currentUser',
+    });
+  }
+  if (init && getLoggedInUser && currentUser) {
+    loginSuccess(false);
+    return null;
+  }
+  if (init && login && success) {
+    loginSuccess(true);
+    return null;
+  }
 
   const handleSubmit = (values) => {
     const { dispatch } = props;
@@ -49,12 +97,12 @@ const Login = (props) => {
           return Promise.resolve();
         }}
       >
-        {status === 'error' && (
+        {init && login && !success && (
           <LoginMessage
-            content={'账户或密码错误，请重新输入'}
+            content={'登录失败，账户或密码错误，请重新输入'}
           />
         )}
-        {/*status === 'error' && !submitting && (
+        {/*init & login && !success && !submitting && (
           <LoginMessage content="验证码错误" />
         )*/}
         <ProFormText
@@ -110,6 +158,6 @@ const Login = (props) => {
 };
 
 export default connect(({ login, loading }) => ({
-  userLogin: login,
+  loginResult: login,
   submitting: loading.effects['login/login'],
 }))(Login);

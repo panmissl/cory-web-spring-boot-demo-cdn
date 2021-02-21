@@ -1,48 +1,29 @@
-import { stringify } from 'querystring';
-import { history } from 'umi';
 import { doLogin } from '@/services/login';
 import { queryCurrentUser } from '@/services/user';
 import { setAuthority } from '@/utils/authority';
-import { log, getPageQuery } from '@/utils/utils';
-import { message } from 'antd';
+import { getPageQuery, log } from '@/utils/utils';
+import { stringify } from 'querystring';
+import { history } from 'umi';
+
 const Model = {
   namespace: 'login',
-  state: {
-    status: undefined,
-  },
+  state: {},
   effects: {
-    *login({ payload }, { call, put }) {
-      yield call(doLogin, payload);
-      
-      const currentUser = queryCurrentUser();
+    *currentUser({}, { put }) {
+      const currentUser = yield queryCurrentUser();
       yield put({
         type: 'changeLoginStatus',
-        payload: currentUser,
+        payload: { currentUser, init: true, getLoggedInUser: true, login: false },
+      });
+    },
+
+    *login({ payload }, { call, put }) {
+      const success = yield call(doLogin, payload);
+      const currentUser = success ? yield queryCurrentUser() : null;
+      yield put({
+        type: 'changeLoginStatus',
+        payload: { currentUser, success, init: true, login: true, getLoggedInUser: false },
       }); // Login successfully
-
-      if (currentUser.status === 'ok') {
-        const urlParams = new URL(window.location.href);
-        const params = getPageQuery();
-        message.success('🎉 🎉 🎉  登录成功！');
-        let { redirect } = params;
-
-        if (redirect) {
-          const redirectUrlParams = new URL(redirect);
-
-          if (redirectUrlParams.origin === urlParams.origin) {
-            redirect = redirect.substr(urlParams.origin.length);
-
-            if (redirect.match(/^\/.*#/)) {
-              redirect = redirect.substr(redirect.indexOf('#') + 1);
-            }
-          } else {
-            window.location.href = '/';
-            return;
-          }
-        }
-
-        history.replace(redirect || '/');
-      }
     },
 
     logout() {
@@ -60,10 +41,10 @@ const Model = {
   },
   reducers: {
     changeLoginStatus(state, { payload }) {
-      log('change login status' + JSON.stringify(payload));
+      log('change login status', payload);
 
       setAuthority(payload.currentAuthority);
-      return { ...state, status: payload.status, type: payload.type };
+      return { ...state, ...payload };
     },
   },
 };
