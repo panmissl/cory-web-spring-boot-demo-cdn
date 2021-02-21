@@ -88,11 +88,11 @@ request.use(async (ctx, next) => {
 
 request.interceptors.response.use(async response => {
   if (response.status == 401 || response.status == 403) {
-    window.location.href = '/403';
+    window.location.href = '/error/403';
     return null;
   }
   if (response.status >= 500) {
-    window.location.href = '/500';
+    window.location.href = '/error/500';
     return null;
   }
 
