@@ -3,15 +3,15 @@
  * You can view component api by:
  * https://github.com/ant-design/ant-design-pro-layout
  */
-import ProLayout, { SettingDrawer } from '@ant-design/pro-layout';
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Link, useIntl, connect, history } from 'umi';
-import { GithubOutlined } from '@ant-design/icons';
-import { Result, Button } from 'antd';
-import Authorized from '@/utils/Authorized';
-import RightContent from '@/components/GlobalHeader/RightContent';
-import { getMatchMenu } from '@umijs/route-utils';
 import Footer from '@/components/Footer';
+import RightContent from '@/components/GlobalHeader/RightContent';
+import Authorized from '@/utils/Authorized';
+import { initMeta } from '@/utils/utils';
+import ProLayout, { SettingDrawer } from '@ant-design/pro-layout';
+import { getMatchMenu } from '@umijs/route-utils';
+import { Button, Result } from 'antd';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { connect, history, Link, useIntl } from 'umi';
 import logo from '../assets/logo.png';
 const noMatch = (
   <Result
@@ -51,6 +51,9 @@ const BasicLayout = (props) => {
       pathname: '/',
     },
   } = props;
+
+  initMeta();
+
   const menuDataRef = useRef([]);
   useEffect(() => {
     if (dispatch) {

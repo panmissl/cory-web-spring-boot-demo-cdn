@@ -55,5 +55,5 @@ export const getPostToken = () => {
 };
 
 export const debug = fn => DEBUG && fn && fn();
-export const log = msg => DEBUG && console.log(msg);
-export const error = msg => DEBUG && console.error(msg);
+export const log = (...msg) => DEBUG && console.log(msg);
+export const error = (...msg) => DEBUG && console.error(msg);

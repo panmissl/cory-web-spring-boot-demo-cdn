@@ -83,7 +83,7 @@ request.use(async (ctx, next) => {
     initMeta();
   }
 
-  log('request: ' + JSON.stringify(ctx.req) + ', response: ' + JSON.stringify(ctx.res));
+  log('request: ', ctx.req, 'response: ', ctx.res);
 });
 
 request.interceptors.response.use(async response => {
@@ -98,13 +98,12 @@ request.interceptors.response.use(async response => {
 
   const data = await response.json();
   if (!data || !data.success) {
-    error('[code: ' + data.errorCode + ', message: ' + data.errorMsg + ']');
+    error(JSON.stringify(data));
 
     notification.error({
       message: '错误',
       description: data.errorMsg,
     });
-    return null;
   }
   return data.object;
 });
