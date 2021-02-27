@@ -21,15 +21,12 @@ const GlobalModel = {
      */
     *list(payload, {call, put, select}) {
       //TODO 处理pageNo加1的情况
+      const { url, params = { current: 1, pageSize: 20 }, sorter, filter } = payload;
+      const { current : pageNo, pageSize } = params;
 
-      const pageNo = yield select(state => state.pageNo) + 1;
-      const pageSize = yield select(state => state.pageSize);
-      const filterParams = yield select(state => state.filterParams);
-      const url = '/' + payload.module.toLowerCase() + '/' + payload.model.toLowerCase();
+      log('url: ' + url + ', pageNo: ' + pageNo + ', pageSize: ' + pageSize + ', filter: ' + JSON.stringify(filter));
 
-      log('url: ' + url + ', pageNo: ' + pageNo + ', pageSize: ' + pageSize + ', filter: ' + JSON.stringify(filterParams));
-
-      const pagination = yield call(doList, {url, pageNo, pageSize, filterParams});
+      const pagination = yield call(doList, {url, pageNo, pageSize, filter});
       yield put({type: 'saveList', payload: {list: pagination.list, totalCount: pagination.totalCount, pageNo, }});
     },
     /*

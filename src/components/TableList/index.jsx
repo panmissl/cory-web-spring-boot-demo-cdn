@@ -1,12 +1,12 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Divider, message, Input, Drawer } from 'antd';
-import React, { useState, useRef, Fragment } from 'react';
+import React, { useState, useRef, useMemo, Fragment } from 'react';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import ProTable from '@ant-design/pro-table';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import CreateForm from './CreateForm';
 import UpdateForm from './UpdateForm';
-import { queryRule, updateRule, addRule, removeRule } from './service';
+import { doList, queryRule, updateRule, addRule, removeRule } from './service';
 import { list } from '@/models/global';
 import { log } from '@/utils/utils';
 
@@ -161,6 +161,24 @@ const handleRemove = async (selectedRows) => {
   */
 };
 
+const parsePageInfo = ({module, model}) => {
+  const baseUrl = '/ajax/' + module.toLowerCase() + '/' + (model.substr(model.lastIndexOf('.') + 1)).toLowerCase();
+  const listUrl = baseUrl + '/listData';
+  const detailUrl = baseUrl + '/detailData/';
+  const updateUrl = baseUrl + '/save';
+  const deleteUrl = baseUrl + '/delete/';
+
+  return {
+    listUrl,
+    detailUrl,
+    updateUrl,
+    deleteUrl,
+    columns: [],
+    filters: [],
+    validation: [],
+  };
+};
+
 const TableList = (props) => {
   const [createModalVisible, handleModalVisible] = useState(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState(false);
@@ -168,8 +186,10 @@ const TableList = (props) => {
   const actionRef = useRef();
   const [row, setRow] = useState();
   const [selectedRowsState, setSelectedRows] = useState([]);
+  
+  const pageInfo = useMemo(() => parsePageInfo(props), []);
 
-  const url = useMemo(() => '/' + props.module.toLowerCase() + '/' + props.model.toLowerCase(), []);
+  log('pageInfo', pageInfo);
 
   return (
     <Fragment>
@@ -185,7 +205,8 @@ const TableList = (props) => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={(params, sorter, filter) => list({ url, params, sorter, filter})}
+        request={(params, sorter, filter) => doList({ url: pageInfo.listUrl, params, sorter, filter})}
+        //request={(params, sorter, filter) => queryRule(params)}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),
