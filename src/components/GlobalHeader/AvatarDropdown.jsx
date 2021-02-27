@@ -15,7 +15,7 @@ const AvatarDropdown = props => {
 
       if (dispatch) {
         dispatch({
-          type: 'login/logout',
+          type: 'user/logout',
         });
       }
 
@@ -25,15 +25,8 @@ const AvatarDropdown = props => {
     history.push(`/account/${key}`);
   };
 
-  const { currentUser, menu, dispatch } = props;
-
-  if (!currentUser) {
-    useEffect(() => {
-      dispatch({
-        type: 'user/queryCurrentUser',
-      });
-    }, []);
-  }
+  const { menu } = props;
+  const currentUser = window.USER;
 
   const menuHeaderDropdown = (
     <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
@@ -58,11 +51,11 @@ const AvatarDropdown = props => {
     </Menu>
   );
 
-  return currentUser && currentUser.name ? (
+  return currentUser && currentUser.logonId ? (
     <HeaderDropdown overlay={menuHeaderDropdown}>
       <span className={`${styles.action} ${styles.account}`}>
         <Avatar size="small" className={styles.avatar} src={currentUser.avatar} alt="avatar" />
-        <span className={`${styles.name} anticon`}>{currentUser.name}</span>
+        <span className={`${styles.name} anticon`}>{currentUser.logonId}</span>
       </span>
     </HeaderDropdown>
   ) : (
@@ -78,6 +71,4 @@ const AvatarDropdown = props => {
   );
 };
 
-export default connect(({ user }) => ({
-  currentUser: user.currentUser,
-}))(AvatarDropdown);
+export default connect()(AvatarDropdown);

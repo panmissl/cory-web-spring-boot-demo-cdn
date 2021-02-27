@@ -5,7 +5,7 @@ import React from 'react';
 const User = () => {
   return (
     <PageContainer>
-      <TableList />
+      <TableList model="com.cory.model.User" module="base" />
     </PageContainer>
   );
 };

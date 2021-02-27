@@ -1,7 +1,7 @@
 import { initMeta } from '@/utils/utils';
 import { PageLoading } from '@ant-design/pro-layout';
 import { stringify } from 'querystring';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect, Redirect } from 'umi';
 
 class SecurityLayout extends React.Component {
@@ -10,7 +10,7 @@ class SecurityLayout extends React.Component {
   };
 
   componentDidMount() {
-    initMeta();
+    useEffect(() => initMeta('SecurityLayout'), []);
 
     this.setState({
       isReady: true,

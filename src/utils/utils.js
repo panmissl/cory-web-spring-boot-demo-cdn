@@ -27,9 +27,10 @@ export const isAntDesignProOrDev = () => {
 };
 export const getPageQuery = () => parse(window.location.href.split('?')[1]);
 
-export const initMeta = () => {
+export const initMeta = (from) => {
   //window.document.getElementsByName('_csrf')[0].content = '123';
   //window.document.getElementsByName('__form_token__')[0].content = '123';
+  log('initMeta from ' + (from ? from : 'NULL'));
 
   request('/generateCsrfToken').then(token => {
     const csrfMetas = window.document.getElementsByName(CSRF_TOKEN_NAME);

@@ -49,21 +49,13 @@ const loginSuccess = (showTip) => {
 };
 
 const Login = (props) => {
-  const { loginInfo = { }, submitting, dispatch } = props;
-  const { currentUser, loginError, localUser } = loginInfo;
+  const { loginInfo = { }, submitting } = props;
+  const { loginError, loginMode = false } = loginInfo;
 
   console.log('loginInfo', loginInfo);
 
-  if (!currentUser) {
-    useEffect(() => {
-      dispatch({
-        type: 'user/queryCurrentUser',
-      });
-    }, []);
-  }
-
-  if (currentUser) {
-    loginSuccess(!localUser);
+  if (window.USER) {
+    loginSuccess(loginMode);
     return null;
   }
 

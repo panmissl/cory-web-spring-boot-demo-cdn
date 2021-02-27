@@ -1,5 +1,5 @@
 import { getMenuData, getPageTitle } from '@ant-design/pro-layout';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { connect } from 'umi';
 import Footer from '@/components/Footer';
@@ -7,7 +7,7 @@ import { initMeta } from '@/utils/utils';
 import styles from './UserLayout.less';
 
 const UserLayout = (props) => {
-  initMeta();
+  useEffect(() => initMeta('UserLayout'), []);
 
   const {
     route = {
@@ -35,18 +35,26 @@ const UserLayout = (props) => {
         <meta name="description" content={title} />
       </Helmet>
 
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <div className={styles.top}>
-            <div className={styles.header}>
-              <span className={styles.title}>请登录</span>
+      {
+        window.USER 
+        ?
+        (children)
+        :
+        (
+          <div className={styles.container}>
+            <div className={styles.content}>
+              <div className={styles.top}>
+                <div className={styles.header}>
+                  <span className={styles.title}>请登录</span>
+                </div>
+                <div className={styles.desc}>Hi, 欢迎光临!</div>
+              </div>
+              {children}
             </div>
-            <div className={styles.desc}>Hi, 欢迎光临!</div>
+            <Footer />
           </div>
-          {children}
-        </div>
-        <Footer />
-      </div>
+        )
+      }
     </HelmetProvider>
   );
 };

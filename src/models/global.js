@@ -1,11 +1,38 @@
-import { queryNotices } from '@/services/user';
+import { doList } from '@/services/global';
+import { log } from '@/utils/utils';
+
 const GlobalModel = {
   namespace: 'global',
   state: {
-    collapsed: false,
-    notices: [],
   },
   effects: {
+    /**
+     * https://procomponents.ant.design/components/table#request
+     * @param {*} payload {url, params(pageSize, current), sorter, filter}
+     * @param {*} param1 
+     * @returns {
+     *    data: msg.result,
+     *    // success 请返回 true，
+     *    // 不然 table 会停止解析数据，即使有数据
+     *    success: boolean,
+     *    // 不传会使用 data 的长度，如果是分页一定要传
+     *    total: number,
+     * }
+     */
+    *list(payload, {call, put, select}) {
+      //TODO 处理pageNo加1的情况
+
+      const pageNo = yield select(state => state.pageNo) + 1;
+      const pageSize = yield select(state => state.pageSize);
+      const filterParams = yield select(state => state.filterParams);
+      const url = '/' + payload.module.toLowerCase() + '/' + payload.model.toLowerCase();
+
+      log('url: ' + url + ', pageNo: ' + pageNo + ', pageSize: ' + pageSize + ', filter: ' + JSON.stringify(filterParams));
+
+      const pagination = yield call(doList, {url, pageNo, pageSize, filterParams});
+      yield put({type: 'saveList', payload: {list: pagination.list, totalCount: pagination.totalCount, pageNo, }});
+    },
+    /*
     *fetchNotices(_, { call, put, select }) {
       const data = yield call(queryNotices);
       yield put({
@@ -66,8 +93,14 @@ const GlobalModel = {
         },
       });
     },
+    */
   },
   reducers: {
+    saveList(state, { list, totalCount, pageNo }) {
+      log('saveList', list);
+      return { ...state, list, totalCount, pageNo, };
+    },
+    /*
     changeLayoutCollapsed(
       state = {
         notices: [],
@@ -99,6 +132,7 @@ const GlobalModel = {
         notices: state.notices.filter((item) => item.type !== payload),
       };
     },
+    */
   },
 };
 export default GlobalModel;

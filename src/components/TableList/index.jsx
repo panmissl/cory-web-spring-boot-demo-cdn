@@ -7,6 +7,101 @@ import ProDescriptions from '@ant-design/pro-descriptions';
 import CreateForm from './CreateForm';
 import UpdateForm from './UpdateForm';
 import { queryRule, updateRule, addRule, removeRule } from './service';
+import { list } from '@/models/global';
+import { log } from '@/utils/utils';
+
+const columns = [
+  {
+    title: '规则名称',
+    dataIndex: 'name',
+    tip: '规则名称是唯一的 key',
+    formItemProps: {
+      rules: [
+        {
+          required: true,
+          message: '规则名称为必填项',
+        },
+      ],
+    },
+    render: (dom, entity) => {
+      return <a onClick={() => setRow(entity)}>{dom}</a>;
+    },
+  },
+  {
+    title: '描述',
+    dataIndex: 'desc',
+    valueType: 'textarea',
+  },
+  {
+    title: '服务调用次数',
+    dataIndex: 'callNo',
+    sorter: true,
+    hideInForm: true,
+    renderText: (val) => `${val} 万`,
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    hideInForm: true,
+    valueEnum: {
+      0: {
+        text: '关闭',
+        status: 'Default',
+      },
+      1: {
+        text: '运行中',
+        status: 'Processing',
+      },
+      2: {
+        text: '已上线',
+        status: 'Success',
+      },
+      3: {
+        text: '异常',
+        status: 'Error',
+      },
+    },
+  },
+  {
+    title: '上次调度时间',
+    dataIndex: 'updatedAt',
+    sorter: true,
+    valueType: 'dateTime',
+    hideInForm: true,
+    renderFormItem: (item, { defaultRender, ...rest }, form) => {
+      const status = form.getFieldValue('status');
+
+      if (`${status}` === '0') {
+        return false;
+      }
+
+      if (`${status}` === '3') {
+        return <Input {...rest} placeholder="请输入异常原因！" />;
+      }
+
+      return defaultRender(item);
+    },
+  },
+  {
+    title: '操作',
+    dataIndex: 'option',
+    valueType: 'option',
+    render: (_, record) => (
+      <>
+        <a
+          onClick={() => {
+            handleUpdateModalVisible(true);
+            setStepFormValues(record);
+          }}
+        >
+          配置
+        </a>
+        <Divider type="vertical" />
+        <a href="">订阅警报</a>
+      </>
+    ),
+  },
+];
 
 const handleAdd = async (fields) => {
   const hide = message.loading('正在添加');
@@ -66,109 +161,20 @@ const handleRemove = async (selectedRows) => {
   */
 };
 
-const TableList = () => {
+const TableList = (props) => {
   const [createModalVisible, handleModalVisible] = useState(false);
   const [updateModalVisible, handleUpdateModalVisible] = useState(false);
   const [stepFormValues, setStepFormValues] = useState({});
   const actionRef = useRef();
   const [row, setRow] = useState();
   const [selectedRowsState, setSelectedRows] = useState([]);
-  const columns = [
-    {
-      title: '规则名称',
-      dataIndex: 'name',
-      tip: '规则名称是唯一的 key',
-      formItemProps: {
-        rules: [
-          {
-            required: true,
-            message: '规则名称为必填项',
-          },
-        ],
-      },
-      render: (dom, entity) => {
-        return <a onClick={() => setRow(entity)}>{dom}</a>;
-      },
-    },
-    {
-      title: '描述',
-      dataIndex: 'desc',
-      valueType: 'textarea',
-    },
-    {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val) => `${val} 万`,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      hideInForm: true,
-      valueEnum: {
-        0: {
-          text: '关闭',
-          status: 'Default',
-        },
-        1: {
-          text: '运行中',
-          status: 'Processing',
-        },
-        2: {
-          text: '已上线',
-          status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
-        },
-      },
-    },
-    {
-      title: '上次调度时间',
-      dataIndex: 'updatedAt',
-      sorter: true,
-      valueType: 'dateTime',
-      hideInForm: true,
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
 
-        if (`${status}` === '0') {
-          return false;
-        }
+  const url = useMemo(() => '/' + props.module.toLowerCase() + '/' + props.model.toLowerCase(), []);
 
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder="请输入异常原因！" />;
-        }
-
-        return defaultRender(item);
-      },
-    },
-    {
-      title: '操作',
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => (
-        <>
-          <a
-            onClick={() => {
-              handleUpdateModalVisible(true);
-              setStepFormValues(record);
-            }}
-          >
-            配置
-          </a>
-          <Divider type="vertical" />
-          <a href="">订阅警报</a>
-        </>
-      ),
-    },
-  ];
   return (
     <Fragment>
       <ProTable
-        headerTitle="查询表格"
+        //headerTitle="查询表格"
         actionRef={actionRef}
         rowKey="key"
         search={{
@@ -179,7 +185,7 @@ const TableList = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={(params, sorter, filter) => queryRule({ ...params, sorter, filter })}
+        request={(params, sorter, filter) => list({ url, params, sorter, filter})}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => setSelectedRows(selectedRows),

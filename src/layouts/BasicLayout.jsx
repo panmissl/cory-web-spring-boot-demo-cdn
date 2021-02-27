@@ -47,13 +47,14 @@ const BasicLayout = (props) => {
     dispatch,
     children,
     settings,
-    currentUser,
     location = {
       pathname: '/',
     },
   } = props;
 
-  initMeta();
+  const currentUser = window.USER;
+
+  useEffect(() => initMeta('BasicLayout'), []);
 
   const menuDataRef = useRef([]);
 
@@ -64,20 +65,6 @@ const BasicLayout = (props) => {
       },
     [location.pathname],
   );
-
-  if (!currentUser) {
-    /*这里不能用useEffect，因为用了useRef：https://segmentfault.com/a/1190000022341755
-    useEffect(() => {
-      dispatch({
-        type: 'user/queryCurrentUser',
-      });
-    }, []);
-    */
-    dispatch({
-      type: 'user/queryCurrentUser',
-    });
-  }
-
 
   const handleMenuCollapse = (payload) => {
     if (dispatch) {
@@ -94,7 +81,7 @@ const BasicLayout = (props) => {
         formatMessage={null}
         {...props}
         {...settings}
-        title={currentUser ? currentUser.name : ''}
+        title={currentUser ? currentUser.logonId : ''}
         logo={currentUser ? currentUser.avatar : ''}
         onCollapse={handleMenuCollapse}
         onMenuHeaderClick={() => history.push('/')}
@@ -149,8 +136,7 @@ const BasicLayout = (props) => {
   );
 };
 
-export default connect(({ global, settings, user }) => ({
+export default connect(({ global, settings }) => ({
   collapsed: global.collapsed,
   settings,
-  currentUser: user.currentUser,
 }))(BasicLayout);

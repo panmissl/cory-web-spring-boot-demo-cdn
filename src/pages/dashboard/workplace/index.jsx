@@ -33,8 +33,8 @@ const links = [
   },
 ];
 
-const PageHeaderContent = ({ currentUser }) => {
-  const loading = currentUser && Object.keys(currentUser).length;
+const PageHeaderContent = () => {
+  const loading = window.USER;
 
   if (!loading) {
     return (
@@ -51,12 +51,12 @@ const PageHeaderContent = ({ currentUser }) => {
   return (
     <div className={styles.pageHeaderContent}>
       <div className={styles.avatar}>
-        <Avatar size="large" src={currentUser.avatar} />
+        <Avatar size="large" src={window.USER.avatar} />
       </div>
       <div className={styles.content}>
         <div className={styles.contentTitle}>
           早安，
-          {currentUser.name}
+          {window.USER.logonId}
           ，祝你开心每一天！
         </div>
       </div>
@@ -128,20 +128,16 @@ class Workplace extends Component {
 
   render() {
     const {
-      currentUser,
       activities,
       projectNotice,
       radarData,
     } = this.props;
 
-    if (!currentUser || !currentUser.name) {
-      return null;
-    }
-
     return (
       <PageContainer
-        content={<PageHeaderContent currentUser={currentUser} />}
+        content={<PageHeaderContent />}
         extraContent={<ExtraContent />}
+        header={{title: null, breadcrumb: null}}
       >
         <Row gutter={24}>
           <Col xl={16} lg={24} md={24} sm={24} xs={24}>
@@ -256,8 +252,7 @@ class Workplace extends Component {
 }
 
 export default connect(
-  ({ dashboardAndworkplace: { projectNotice, activities, radarData }, user: { currentUser}, loading }) => ({
-    currentUser,
+  ({ dashboardAndworkplace: { projectNotice, activities, radarData }, loading }) => ({
     projectNotice,
     activities,
     radarData,

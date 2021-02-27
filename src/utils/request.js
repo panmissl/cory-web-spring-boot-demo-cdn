@@ -80,7 +80,7 @@ request.use(async (ctx, next) => {
   await next();
 
   if (isPost) {
-    initMeta();
+    initMeta('post after request');
   }
 
   log('request: ', ctx.req, 'response: ', ctx.res);
