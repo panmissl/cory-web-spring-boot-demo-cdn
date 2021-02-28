@@ -90,7 +90,6 @@ export default defineConfig({
               name: '系统管理',
               icon: 'setting',
               routes: [
-                /*
                 {
                   name: '系统配置',
                   path: '/base/systemconfig',
@@ -101,13 +100,11 @@ export default defineConfig({
                   path: '/base/datadict',
                   component: './base/DataDict',
                 },
-                */
                 {
                   name: '用户管理',
                   path: '/base/user',
                   component: './base/User',
                 },
-                /*
                 {
                   name: '角色管理',
                   path: '/base/role',
@@ -123,7 +120,6 @@ export default defineConfig({
                   path: '/base/feedback',
                   component: './base/Feedback',
                 },
-                */
               ],
             },
             {

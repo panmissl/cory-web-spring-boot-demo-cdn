@@ -6,122 +6,18 @@ import ProTable from '@ant-design/pro-table';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import CreateForm from './CreateForm';
 import UpdateForm from './UpdateForm';
-import { doList, queryRule, updateRule, addRule, removeRule } from './service';
-import { list } from '@/models/global';
+import { doList, doSave, doDelete } from './service';
 import { log } from '@/utils/utils';
 
-const columns = [
-  {
-    title: '规则名称',
-    dataIndex: 'name',
-    tip: '规则名称是唯一的 key',
-    formItemProps: {
-      rules: [
-        {
-          required: true,
-          message: '规则名称为必填项',
-        },
-      ],
-    },
-    render: (dom, entity) => {
-      return <a onClick={() => setRow(entity)}>{dom}</a>;
-    },
-  },
-  {
-    title: '描述',
-    dataIndex: 'desc',
-    valueType: 'textarea',
-  },
-  {
-    title: '服务调用次数',
-    dataIndex: 'callNo',
-    sorter: true,
-    hideInForm: true,
-    renderText: (val) => `${val} 万`,
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    hideInForm: true,
-    valueEnum: {
-      0: {
-        text: '关闭',
-        status: 'Default',
-      },
-      1: {
-        text: '运行中',
-        status: 'Processing',
-      },
-      2: {
-        text: '已上线',
-        status: 'Success',
-      },
-      3: {
-        text: '异常',
-        status: 'Error',
-      },
-    },
-  },
-  {
-    title: '上次调度时间',
-    dataIndex: 'updatedAt',
-    sorter: true,
-    valueType: 'dateTime',
-    hideInForm: true,
-    renderFormItem: (item, { defaultRender, ...rest }, form) => {
-      const status = form.getFieldValue('status');
-
-      if (`${status}` === '0') {
-        return false;
-      }
-
-      if (`${status}` === '3') {
-        return <Input {...rest} placeholder="请输入异常原因！" />;
-      }
-
-      return defaultRender(item);
-    },
-  },
-  {
-    title: '操作',
-    dataIndex: 'option',
-    valueType: 'option',
-    render: (_, record) => (
-      <>
-        <a
-          onClick={() => {
-            handleUpdateModalVisible(true);
-            setStepFormValues(record);
-          }}
-        >
-          配置
-        </a>
-        <Divider type="vertical" />
-        <a href="">订阅警报</a>
-      </>
-    ),
-  },
-];
-
-const handleAdd = async (fields) => {
-  const hide = message.loading('正在添加');
-
-  /*
-  try {
-    await addRule({ ...fields });
-    hide();
-    message.success('添加成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('添加失败请重试！');
-    return false;
-  }
-  */
+const DEFAULT_PAGINATION = {
+  show: true,
+  pageSize: 20,
+  current: 1,
 };
 
-const handleUpdate = async (fields) => {
-  const hide = message.loading('正在配置');
+const handleSave = async (record) => {
+
+  //const hide = message.loading('正在配置');
 
   /*
   try {
@@ -141,7 +37,7 @@ const handleUpdate = async (fields) => {
   */
 };
 
-const handleRemove = async (selectedRows) => {
+const handleDelete = async (id, actionRef) => {
   const hide = message.loading('正在删除');
   if (!selectedRows) return true;
 
@@ -161,89 +57,157 @@ const handleRemove = async (selectedRows) => {
   */
 };
 
-const parsePageInfo = ({module, model}) => {
+const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], showId = false }, setEditModal, actionRef) => {
+  const { modelMetaList } = window.USER;
+  const modelMeta = modelMetaList.find(meta => meta.className == model);
+  const { name, module, createable, updateable, deleteable, fieldList } = modelMeta;
+
   const baseUrl = '/ajax/' + module.toLowerCase() + '/' + (model.substr(model.lastIndexOf('.') + 1)).toLowerCase();
   const listUrl = baseUrl + '/listData';
-  const detailUrl = baseUrl + '/detailData/';
   const updateUrl = baseUrl + '/save';
   const deleteUrl = baseUrl + '/delete/';
 
-  return {
+  const c = (field) => ({
+    title: field.label,
+    tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
+    dataIndex: field.name,
+    valueType: 'text',
+    search: field.filtered,
+    ellipsis: ellipsisFieldList.indexOf(field.name) >= 0,
+    renderText: (val, record) => {
+      return field.renderName && field.renderName.length > 0 ? (record && record.renderFieldMap ? record.renderFieldMap[field.renderName] : '') : val;
+    },
+  });
+
+  const listColumns = fieldList.filter(f => f.showable).map(field => c(field));
+  const editColumns = fieldList.filter(f => f.showable && f.editable).map(field => c(field));
+  const detailColumns = fieldList.filter(f => f.showable).map(field => c(field));
+
+  if (showId) {
+    listColumns.splice(0, 0, c({
+      label: 'ID',
+      name: 'id',
+      filtered: false,
+    }));
+  }
+
+  let opArr = [];
+  if (updateable) {
+    opArr.push({
+      execute: record => setEditModal({visible: true, isCreate: false, record, }),
+      label: '编辑',
+    });
+  }
+  if (deleteable) {
+    opArr.push({
+      type: 'danger',
+      execute: record => handleDelete(record.id, actionRef),
+      label: '删除',
+    });
+  }
+  if (operationList.length > 0) {
+    opArr = opArr.concat(operationList);
+  }
+  if (opArr.length > 0) {
+    listColumns.push({
+      title: '操作',
+      dataIndex: 'option',
+      valueType: 'option',
+      render: (_, record) => {
+        let opIndex = 1;
+        return opArr.map(op => <Button key={opIndex ++} type={op.type || 'normal'} onClick={() => op.execute(record)}>{op.label}</Button>);
+      },
+    });
+  }
+
+  const searchEnable = fieldList.filter(f => f.filtered).length > 0;
+
+  detailColumns.push(c({
+    label: '创建时间',
+    name: 'createTime',
+    filtered: false,
+    renderName: 'createTimeText',
+  }));
+  detailColumns.push(c({
+    label: '最后更新时间',
+    name: 'modifyTime',
+    filtered: false,
+    renderName: 'modifyTimeText',
+  }));
+
+  const pageInfo = {
+    name,
     listUrl,
-    detailUrl,
     updateUrl,
     deleteUrl,
-    columns: [],
+    listColumns,
+    editColumns,
+    detailColumns,
     filters: [],
     validation: [],
+    searchEnable,
+    createable, 
+    updateable, 
+    deleteable,
   };
-};
-
-const TableList = (props) => {
-  const [createModalVisible, handleModalVisible] = useState(false);
-  const [updateModalVisible, handleUpdateModalVisible] = useState(false);
-  const [stepFormValues, setStepFormValues] = useState({});
-  const actionRef = useRef();
-  const [row, setRow] = useState();
-  const [selectedRowsState, setSelectedRows] = useState([]);
-  
-  const pageInfo = useMemo(() => parsePageInfo(props), []);
 
   log('pageInfo', pageInfo);
+
+  return pageInfo;
+};
+
+/**
+ * props: 
+ *     model="com.cory.model.Resource" mandatory
+ *     params={{sort: 'VALUE DESC'}} default null
+ *     pageSize=20 default 20
+ *     ellipsisFieldList=['code', 'name'] default null 对于太长的字段，用这个来显示...并把宽度限制
+ *     operationList=[{type: 'normal/danger/warning', label: '', execute: fn(record)}, ...]} default null 自定义操作，可以有多个。
+ *     showId=true/false 是否显示ID字段，默认不显示
+ */
+const TableList = (props) => {
+  const [editModal, setEditModal] = useState({visible: false, isCreate: false, record: null, });
+  const actionRef = useRef();
+  const [row, setRow] = useState();
+  
+  const pageInfo = useMemo(() => parsePageInfo(props, setEditModal, actionRef), []);
+
+  //详情链接
+  pageInfo.listColumns[0].render = (dom, entity) => {
+    return <a onClick={() => setRow(entity)}>{dom}</a>;
+  };
 
   return (
     <Fragment>
       <ProTable
         //headerTitle="查询表格"
+        pagination={{
+          ...DEFAULT_PAGINATION,
+          pageSize: props.pageSize || DEFAULT_PAGINATION.pageSize,
+        }}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey="_rowIndex"
+        /*
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Button type="primary" onClick={() => handleModalVisible(true)}>
+        */
+        params={props.params || {}}
+        search={pageInfo.searchEnable}
+        toolBarRender={() => pageInfo.createable ? [
+          <Button type="primary" onClick={() => setEditModal({visible: true, isCreate: true, record: null, })}>
             <PlusOutlined /> 新建
           </Button>,
-        ]}
+        ] : []}
         request={(params, sorter, filter) => doList({ url: pageInfo.listUrl, params, sorter, filter})}
-        //request={(params, sorter, filter) => queryRule(params)}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => setSelectedRows(selectedRows),
-        }}
+        columns={pageInfo.listColumns}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              已选择{' '}
-              <a
-                style={{
-                  fontWeight: 600,
-                }}
-              >
-                {selectedRowsState.length}
-              </a>{' '}
-              项&nbsp;&nbsp;
-              <span>
-                服务调用次数总计 {selectedRowsState.reduce((pre, item) => pre + item.callNo, 0)} 万
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-          >
-            批量删除
-          </Button>
-          <Button type="primary">批量审批</Button>
-        </FooterToolbar>
-      )}
-      <CreateForm onCancel={() => handleModalVisible(false)} modalVisible={createModalVisible}>
+
+      {(pageInfo.createable || pageInfo.updateable) && editModal.visible && (
+      <CreateForm 
+        onCancel={() => setEditModal({visible: false})} 
+        modalVisible={editModal.visible} 
+        title={(editModal.isCreate ? '新建' : '编辑') + pageInfo.name}>
         <ProTable
           onSubmit={async (value) => {
             const success = await handleAdd(value);
@@ -256,33 +220,15 @@ const TableList = (props) => {
               }
             }
           }}
-          rowKey="key"
+          rowKey="_rowIndex"
           type="form"
-          columns={columns}
+          columns={pageInfo.editColumns}
+          request={async () => ({
+            data: editModal.record || {},
+          })}
         />
       </CreateForm>
-      {stepFormValues && Object.keys(stepFormValues).length ? (
-        <UpdateForm
-          onSubmit={async (value) => {
-            const success = await handleUpdate(value);
-
-            if (success) {
-              handleUpdateModalVisible(false);
-              setStepFormValues({});
-
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
-            }
-          }}
-          onCancel={() => {
-            handleUpdateModalVisible(false);
-            setStepFormValues({});
-          }}
-          updateModalVisible={updateModalVisible}
-          values={stepFormValues}
-        />
-      ) : null}
+      )}
 
       <Drawer
         width={600}
@@ -290,21 +236,19 @@ const TableList = (props) => {
         onClose={() => {
           setRow(undefined);
         }}
-        closable={false}
+        closable={true}
       >
-        {row?.name && (
-          <ProDescriptions
-            column={2}
-            title={row?.name}
-            request={async () => ({
-              data: row || {},
-            })}
-            params={{
-              id: row?.name,
-            }}
-            columns={columns}
-          />
-        )}
+        <ProDescriptions
+          column={1}
+          title={pageInfo.name}
+          request={async () => ({
+            data: row || {},
+          })}
+          params={{
+            id: row?.id,
+          }}
+          columns={pageInfo.detailColumns}
+        />
       </Drawer>
     </Fragment>
   );

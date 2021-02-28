@@ -5,7 +5,7 @@ import React from 'react';
 const User = () => {
   return (
     <PageContainer>
-      <TableList model="com.cory.model.User" showId={true} />
+      <TableList model="com.cory.model.Resource" params={{sort: 'VALUE DESC'}} pageSize={200} />
     </PageContainer>
   );
 };

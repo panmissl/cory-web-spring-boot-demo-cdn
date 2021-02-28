@@ -75,6 +75,8 @@ request.use(async (ctx, next) => {
       ...options || {},
       data: formData,
     };
+  } else {
+    ctx.req.options.params = ctx.req.options.data;
   }
 
   await next();
