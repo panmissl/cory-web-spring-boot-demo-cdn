@@ -1,10 +1,9 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Input, Drawer } from 'antd';
+import { Button, Divider, message, Input, Drawer, Popconfirm } from 'antd';
 import React, { useState, useRef, useMemo, Fragment } from 'react';
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import ProTable from '@ant-design/pro-table';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import CreateForm from './CreateForm';
 import UpdateForm from './UpdateForm';
 import { doList, doSave, doDelete } from './service';
 import { log } from '@/utils/utils';
@@ -15,46 +14,39 @@ const DEFAULT_PAGINATION = {
   current: 1,
 };
 
-const handleSave = async (record) => {
+const handleSave = async (record, pageInfo) => {
+  log('handle save', record, pageInfo);
 
-  //const hide = message.loading('正在配置');
+  const hide = message.loading('保存中...');
 
-  /*
-  try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
-    hide();
-    message.success('配置成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('配置失败请重试！');
-    return false;
+  const success = await doSave({
+    url: pageInfo.saveUrl,
+    data: record,
+  });
+
+  hide();
+  if (success) {
+    message.success('保存成功');
   }
-  */
+  return success;
 };
 
-const handleDelete = async (id, actionRef) => {
+const handleDelete = async (id, actionRef, pageInfo) => {
   const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
 
-  /*
-  try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
-    hide();
-    message.success('删除成功，即将刷新');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('删除失败，请重试');
-    return false;
+  const success = await doDelete({
+    url: pageInfo.deleteUrl,
+    id,
+  });
+
+  hide();
+  if (success) {
+    message.success('删除成功');
+    if (actionRef.current) {
+      actionRef.current.reset();
+    }
   }
-  */
+  return success;
 };
 
 const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], showId = false }, setEditModal, actionRef) => {
@@ -64,10 +56,15 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
 
   const baseUrl = '/ajax/' + module.toLowerCase() + '/' + (model.substr(model.lastIndexOf('.') + 1)).toLowerCase();
   const listUrl = baseUrl + '/listData';
-  const updateUrl = baseUrl + '/save';
+  const saveUrl = baseUrl + '/save';
   const deleteUrl = baseUrl + '/delete/';
 
   const c = (field) => ({
+    fieldType: field.type,
+    fieldJavaType: field.javaType,
+    fieldNullable: field.nullable,
+    fieldLen: field.len,
+
     title: field.label,
     tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
     dataIndex: field.name,
@@ -91,6 +88,12 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
     }));
   }
 
+  editColumns.splice(0, 0, c({
+    label: 'ID',
+    name: 'id',
+    hideInForm: true,
+  }));
+
   let opArr = [];
   if (updateable) {
     opArr.push({
@@ -101,8 +104,10 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
   if (deleteable) {
     opArr.push({
       type: 'danger',
-      execute: record => handleDelete(record.id, actionRef),
+      execute: record => handleDelete(record.id, actionRef, pageInfo),
       label: '删除',
+      confirm: true,
+      confirmText: '确认删除?',
     });
   }
   if (operationList.length > 0) {
@@ -115,7 +120,22 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
       valueType: 'option',
       render: (_, record) => {
         let opIndex = 1;
-        return opArr.map(op => <Button key={opIndex ++} type={op.type || 'normal'} onClick={() => op.execute(record)}>{op.label}</Button>);
+        return opArr.map(op => {
+          if (op.confirm) {
+            return (
+              <Popconfirm
+                key={opIndex ++}
+                title={op.confirmText}
+                onConfirm={() => op.execute(record)}
+                //onCancel={cancel}
+                okText="确认"
+                cancelText="取消">
+                  <Button type={op.type || 'normal'}>{op.label}</Button>
+              </Popconfirm>
+            );
+          }
+          return <Button key={opIndex ++} type={op.type || 'normal'} onClick={() => op.execute(record)}>{op.label}</Button>;
+        });
       },
     });
   }
@@ -138,7 +158,7 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
   const pageInfo = {
     name,
     listUrl,
-    updateUrl,
+    saveUrl,
     deleteUrl,
     listColumns,
     editColumns,
@@ -204,30 +224,22 @@ const TableList = (props) => {
       />
 
       {(pageInfo.createable || pageInfo.updateable) && editModal.visible && (
-      <CreateForm 
-        onCancel={() => setEditModal({visible: false})} 
-        modalVisible={editModal.visible} 
-        title={(editModal.isCreate ? '新建' : '编辑') + pageInfo.name}>
-        <ProTable
-          onSubmit={async (value) => {
-            const success = await handleAdd(value);
+      <UpdateForm 
+        onSubmit={async (value) => {
+          const success = await handleSave(value, pageInfo);
 
-            if (success) {
-              handleModalVisible(false);
-
-              if (actionRef.current) {
-                actionRef.current.reload();
-              }
+          if (success) {
+            setEditModal({ visible: false, record: null });
+            if (actionRef.current) {
+              actionRef.current.reload();
             }
-          }}
-          rowKey="_rowIndex"
-          type="form"
-          columns={pageInfo.editColumns}
-          request={async () => ({
-            data: editModal.record || {},
-          })}
-        />
-      </CreateForm>
+          }
+        }}
+        onCancel={() => setEditModal({ visible: false, record: null })}
+        editModalVisible={editModal.visible} 
+        title={(editModal.isCreate ? '新建' : '编辑') + pageInfo.name}
+        columns={pageInfo.editColumns}
+        values={editModal.record}/>
       )}
 
       <Drawer

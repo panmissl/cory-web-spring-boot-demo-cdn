@@ -48,17 +48,23 @@ export async function doList(payload) {
   return result;
 }
 
-export async function doSave(payload) {
-  /*
-  return request('/doLogin', {
+/**
+ * 
+ * @param {*} payload {url, data}
+ */
+export async function doSave({ url, data }) {
+  return await request(url, {
     method: 'POST',
-    data: params,
+    data,
   });
-  */
-  return null;
 }
 
-export async function doDelete(payload) {
-  //return request('/currentUser');
-  return null;
+/**
+ * 
+ * @param {*} payload {url, id}
+ */
+export async function doDelete({ url, id }) {
+  return await request(url + id, {
+    method: 'POST',
+  });
 }
