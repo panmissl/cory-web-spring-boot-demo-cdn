@@ -29,15 +29,23 @@ const buildEnumOptions = fieldJavaType => {
   if (!enumMetaSet || enumMetaSet.length == 0) {
     return null;
   }
-  const enumMeta = enumMetaSet.find(e => e.className = fieldJavaType);
+  const enumMeta = enumMetaSet.find(e => e.className == fieldJavaType);
   if (!enumMeta) {
     return null;
   }
-  const valueLabelMap = enumMeta.valueLabelMap;
-  if (!valueLabelMap) {
+  const valueLabelOrderMap = enumMeta.valueLabelOrderMap;
+  if (!valueLabelOrderMap) {
     return null;
   }
-  return Object.keys(valueLabelMap).map(v => (<Option value={v}>{valueLabelMap[v]}</Option>));
+  let arr = Object.keys(valueLabelOrderMap).map(value => {
+    const labelOrder = valueLabelOrderMap[value];
+    const label = Object.keys(labelOrder)[0];
+    const order = labelOrder[label];
+    return {label, value, order};
+  });
+  arr = arr.sort((i1, i2) => i1.order - i2.order);
+  log('arr', arr);
+  return arr.map(item => (<Option key={item.value} value={item.value}>{item.label}</Option>));
 };
 
 const renderColumnInput = column =>{
