@@ -2,7 +2,7 @@ import TableList from '@/components/TableList';
 import { PageContainer } from '@ant-design/pro-layout';
 import React from 'react';
 
-const User = () => {
+const Page = () => {
   return (
     <PageContainer>
       <TableList model="com.cory.model.DataDict" showId={true} />
@@ -10,4 +10,4 @@ const User = () => {
   );
 };
 
-export default User;
+export default Page;

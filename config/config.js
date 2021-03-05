@@ -50,13 +50,16 @@ export default defineConfig({
               name: '注册',
               component: './User/register',
             },
+            {
+              redirect: '/error/404'
+            },
           ],
         },
         {
           path: '/',
           component: '../layouts/BasicLayout',
-          Routes: ['src/pages/Authorized'],
-          authority: ['admin', 'user'],
+          //Routes: ['src/pages/Authorized'],
+          //authority: ['admin', 'user'],
           routes: [
             {
               name: 'error',
@@ -78,6 +81,9 @@ export default defineConfig({
                   path: '/error/500',
                   component: './exception/500',
                 },
+                {
+                  redirect: '/error/404'
+                },
               ],
             },
             {
@@ -87,6 +93,7 @@ export default defineConfig({
               component: './dashboard/workplace',
             },
             {
+              path: '/base',
               name: '系统管理',
               icon: 'setting',
               routes: [
@@ -120,6 +127,24 @@ export default defineConfig({
                   path: '/base/feedback',
                   component: './base/Feedback',
                 },
+                {
+                  redirect: '/error/404'
+                },
+              ],
+            },
+            {
+              path: '/demo',
+              name: '测试管理',
+              icon: 'desktop',
+              routes: [
+                {
+                  name: '测试配置',
+                  path: '/demo/demo',
+                  component: './demo/Demo',
+                },
+                {
+                  redirect: '/error/404'
+                },
               ],
             },
             {
@@ -128,6 +153,9 @@ export default defineConfig({
           ],
         },
       ],
+    },
+    {
+      redirect: '/error/404'
     },
   ],
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn

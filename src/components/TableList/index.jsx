@@ -8,6 +8,8 @@ import UpdateForm from './UpdateForm';
 import { doList, doSave, doDelete } from './service';
 import { log } from '@/utils/utils';
 
+//表单文档：https://procomponents.ant.design/components/table/#search-%E6%90%9C%E7%B4%A2%E8%A1%A8%E5%8D%95
+
 const DEFAULT_PAGINATION = {
   show: true,
   pageSize: 20,
@@ -69,7 +71,7 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
     tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
     dataIndex: field.name,
     valueType: 'text',
-    search: field.filtered,
+    hideInSearch: !field.filtered,
     ellipsis: ellipsisFieldList.indexOf(field.name) >= 0,
     renderText: (val, record) => {
       return field.renderName && field.renderName.length > 0 ? (record && record.renderFieldMap ? record.renderFieldMap[field.renderName] : '') : val;

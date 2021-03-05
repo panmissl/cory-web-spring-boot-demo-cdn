@@ -17,8 +17,8 @@ const formLayout = {
 };
 
 const requireTip = type => {
-  //INT,BIGINT,DOUBLE,VARCHAR,TEXT,BOOLEAN,DATETIME,ENUM,
-  if (type == 'BOOLEAN' || type == 'ENUM' || type == 'DATETIME') {
+  //INT,BIGINT,DOUBLE,VARCHAR,TEXT,BOOLEAN,DATETIME,ENUM,DATE
+  if (type == 'BOOLEAN' || type == 'ENUM' || type == 'DATETIME' || type == 'DATE') {
     return '选择';
   }
   return '输入';
@@ -73,6 +73,18 @@ const renderColumnInput = column =>{
     );
   }
   if (column.fieldType == 'DATETIME') {
+    return (
+      <DatePicker
+        style={{
+          width: '100%',
+        }}
+        showTime={true}
+        format="YYYY-MM-DD HH:mm:ss"
+        placeholder="请选择"
+      />
+    );
+  }
+  if (column.fieldType == 'DATE') {
     return (
       <DatePicker
         style={{
