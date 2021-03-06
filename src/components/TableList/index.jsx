@@ -90,7 +90,7 @@ const TableList = (props) => {
             <PlusOutlined /> 新建
           </Button>,
         ] : []}
-        request={(params, sorter, filter) => doList({ url: pageInfo.listUrl, params, sorter, filter: processValues(filter)})}
+        request={(params, sorter, filter) => doList({ url: pageInfo.listUrl, params, sorter, filter: processValues(filter, pageInfo.listColumns)})}
         columns={pageInfo.listColumns}
       />
 

@@ -25,7 +25,6 @@ export const isAntDesignProOrDev = () => {
 
   return isAntDesignPro();
 };
-export const getPageQuery = () => parse(window.location.href.split('?')[1]);
 
 export const initMeta = (from) => {
   //window.document.getElementsByName('_csrf')[0].content = '123';

@@ -1,7 +1,7 @@
 import { Button, DatePicker, Form, Input, Modal, notification, Radio, Select, Steps, InputNumber } from 'antd';
 import React, { useState } from 'react';
 import { log } from '@/utils/utils';
-import { renderColumn, processValues } from './Helper';
+import { renderColumn, convertValues, processValues } from './Helper';
 
 const FormItem = Form.Item;
 const { Step } = Steps;
@@ -22,8 +22,10 @@ const formLayout = {
  * @param {*} props {onSubmit, onCancel, eidtModalVisible, title, columns, values}
  */
 const EditForm = (props) => {
+  const values = convertValues(props.values, props.columns);
+
   const [formVals, setFormVals] = useState({
-    ...props.values,
+    ...values,
   });
   const [form] = Form.useForm();
   const {
@@ -32,13 +34,10 @@ const EditForm = (props) => {
     editModalVisible,
     title,
     columns,
-    values,
   } = props;
 
-  log('values', values);
-
   const handleSave = async () => {
-    const fieldsValue = processValues(await form.validateFields());
+    const fieldsValue = processValues(await form.validateFields(), columns);
     
     log('fieldsValue', fieldsValue);
 

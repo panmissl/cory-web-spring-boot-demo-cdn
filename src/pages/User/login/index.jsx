@@ -3,7 +3,6 @@ import ProForm, { ProFormText } from '@ant-design/pro-form';
 import { Alert, message } from 'antd';
 import React, { useEffect } from 'react';
 import { connect } from 'umi';
-import { getPageQuery } from '@/utils/utils';
 import styles from './index.less';
 
 const LoginMessage = ({ content }) => (
@@ -17,47 +16,59 @@ const LoginMessage = ({ content }) => (
   />
 );
 
-const redirect = () => {
-  const urlParams = new URL(window.location.href);
-  const params = getPageQuery();
-  let { redirect } = params;
-
-  if (redirect) {
-    const redirectUrlParams = new URL(redirect);
-
-    if (redirectUrlParams.origin === urlParams.origin) {
-      redirect = redirect.substr(urlParams.origin.length);
-
-      if (redirect.match(/^\/.*#/)) {
-        redirect = redirect.substr(redirect.indexOf('#') + 1);
-      }
-    } else {
-      window.location.href = '/';
-      return;
-    }
+const urlParams = () => {
+  let search = window.location.search || '';
+  if (search == '') {
+    return null;
   }
-
-  window.location.href = '/';
+  const question = search.substr(0, 1);
+  if (question == '?') {
+    search = search.substr(1);
+  }
+  const arr = search.split('&');
+  const params = {};
+  arr.forEach(item => {
+    const kv = item.split('=');
+    params[kv[0]] = decodeURIComponent(kv[1]);
+  });
+  return params;
 };
 
-const loginSuccess = (showTip) => {
-  if (showTip) {
+const redirect = () => {
+  const params = urlParams();
+  if (!params || !params['returnUrl']) {
+    window.location.href = '/';
+    return;
+  }
+  let returnUrl = params['returnUrl'];
+  if (returnUrl.substr(0, 1) != '/') {
+    returnUrl = '/' + returnUrl;
+  }
+  window.location.href = returnUrl;
+};
+
+const loginSuccess = (loginMode) => {
+  /*
+  if (loginMode) {
     message.success('🎉 🎉 🎉  登录成功！', 1).then(() => redirect());
   } else {
     redirect();
   }
+  */
+  message.success(`🎉 🎉 🎉  ${loginMode ? '登录成功' : '已经登录，正在跳转...'}！`, 1).then(() => redirect());
 };
 
 const Login = (props) => {
   const { loginInfo = { }, submitting } = props;
   const { loginError, loginMode = false } = loginInfo;
 
-  console.log('loginInfo', loginInfo);
-
-  if (window.USER) {
-    loginSuccess(loginMode);
-    return null;
-  }
+  useEffect(() => {
+    console.log('loginInfo', loginInfo);
+  
+    if (window.USER) {
+      loginSuccess(loginMode);
+    }
+  }, [loginMode]);
 
   const handleSubmit = (values) => {
     const { dispatch } = props;

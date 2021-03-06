@@ -1,5 +1,6 @@
 import { Button, DatePicker, Form, Input, Modal, notification, Radio, Select, Steps, InputNumber, Popconfirm } from 'antd';
 import React, { useState } from 'react';
+import moment from 'moment';
 import { log } from '@/utils/utils';
 
 const FormItem = Form.Item;
@@ -8,7 +9,7 @@ const { TextArea } = Input;
 const { Option } = Select;
 const RadioGroup = Radio.Group;
 
-const COLUMN_STATUS = {
+const COLUMN_TYPE = {
     INT: 'INT',
     BIGINT: 'BIGINT',
     DOUBLE: 'DOUBLE',
@@ -22,10 +23,10 @@ const COLUMN_STATUS = {
 
 /**
  * 根据字段类型返回字段提示：选择 / 输入
- * @param {*} type 字段类型，见：COLUMN_STATUS
+ * @param {*} type 字段类型，见：COLUMN_TYPE
  */
 const requireTip = type => {
-    if (type == COLUMN_STATUS.BOOLEAN || type == COLUMN_STATUS.ENUM || type == COLUMN_STATUS.DATETIME || type == COLUMN_STATUS.DATE) {
+    if (type == COLUMN_TYPE.BOOLEAN || type == COLUMN_TYPE.ENUM || type == COLUMN_TYPE.DATETIME || type == COLUMN_TYPE.DATE) {
         return '选择';
     }
     return '输入';
@@ -70,30 +71,30 @@ const buildEnumOptions = (fieldJavaType, isValueEnum) => {
  * @param {*} column 字段定义：{ filedType, title, fieldLen, fieldJavaType }
  */
 const renderColumnInput = column =>{
-    if (column.fieldType == COLUMN_STATUS.INT || column.fieldType == COLUMN_STATUS.BIGINT || column.fieldType == COLUMN_STATUS.DOUBLE) {
+    if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT || column.fieldType == COLUMN_TYPE.DOUBLE) {
         return (
             <InputNumber placeholder={`请输入${column.title}`} />
         );
     }
-    if (column.fieldType == COLUMN_STATUS.VARCHAR && column.fieldLen <= 500) {
+    if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen <= 500) {
         return (
             <Input placeholder={`请输入${column.title}`} />
         );
     }
-    if (column.fieldType == COLUMN_STATUS.TEXT || (column.fieldType == COLUMN_STATUS.VARCHAR && column.fieldLen > 500)) {
+    if (column.fieldType == COLUMN_TYPE.TEXT || (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 500)) {
         return (
             <TextArea rows={4} placeholder={`请输入${column.title}`} />
         );
     }
-    if (column.fieldType == COLUMN_STATUS.BOOLEAN) {
+    if (column.fieldType == COLUMN_TYPE.BOOLEAN) {
         return (
         <RadioGroup>
-            <Radio value="yes">是</Radio>
-            <Radio value="no">否</Radio>
+            <Radio value="true">是</Radio>
+            <Radio value="false">否</Radio>
         </RadioGroup>
         );
     }
-    if (column.fieldType == COLUMN_STATUS.DATETIME) {
+    if (column.fieldType == COLUMN_TYPE.DATETIME) {
         return (
         <DatePicker
             style={{
@@ -105,7 +106,7 @@ const renderColumnInput = column =>{
         />
         );
     }
-    if (column.fieldType == COLUMN_STATUS.DATE) {
+    if (column.fieldType == COLUMN_TYPE.DATE) {
         return (
         <DatePicker
             style={{
@@ -117,7 +118,7 @@ const renderColumnInput = column =>{
         />
         );
     }
-    if (column.fieldType == COLUMN_STATUS.ENUM) {
+    if (column.fieldType == COLUMN_TYPE.ENUM) {
         return (
         <Select
             style={{
@@ -169,19 +170,19 @@ const renderColumn = column => {
         message: `请${requireTip(column.fieldType)}${column.title}！`,
         });
     }
-    if (column.fieldType == COLUMN_STATUS.VARCHAR || column.fieldType == COLUMN_STATUS.TEXT && column.fieldLen > 0) {
+    if (column.fieldType == COLUMN_TYPE.VARCHAR || column.fieldType == COLUMN_TYPE.TEXT && column.fieldLen > 0) {
         rules.push({
         max: column.fieldLen,
         message: `最大长度为${column.fieldLen}！`,
         });
     }
-    if (column.fieldType == COLUMN_STATUS.INT || column.fieldType == COLUMN_STATUS.BIGINT) {
+    if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT) {
         rules.push({
         type: 'integer',
         message: `请输入数字！`,
         });
     }
-    if (column.fieldType == COLUMN_STATUS.DOUBLE) {
+    if (column.fieldType == COLUMN_TYPE.DOUBLE) {
         rules.push({
         type: 'number',
         message: `请输入数字！`,
@@ -200,22 +201,22 @@ const parseValueType = (fieldType, fieldLen) => {
     //https://procomponents.ant.design/components/table/#valuetype-%E5%80%BC%E7%B1%BB%E5%9E%8B
     //Date,dateTime,dateRange,dateTimeRange,time,
     //text,select,textarea,digit
-    if (fieldType == COLUMN_STATUS.INT || fieldType == COLUMN_STATUS.BIGINT || fieldType == COLUMN_STATUS.DOUBLE) {
+    if (fieldType == COLUMN_TYPE.INT || fieldType == COLUMN_TYPE.BIGINT || fieldType == COLUMN_TYPE.DOUBLE) {
         return 'digit';
     }
-    if (fieldType == COLUMN_STATUS.VARCHAR && fieldLen <= 500) {
+    if (fieldType == COLUMN_TYPE.VARCHAR && fieldLen <= 500) {
         return 'text';
     }
-    if (fieldType == COLUMN_STATUS.TEXT || (fieldType == COLUMN_STATUS.VARCHAR && fieldLen > 500)) {
+    if (fieldType == COLUMN_TYPE.TEXT || (fieldType == COLUMN_TYPE.VARCHAR && fieldLen > 500)) {
         return 'textarea';
     }
-    if (fieldType == COLUMN_STATUS.BOOLEAN || fieldType == COLUMN_STATUS.ENUM) {
+    if (fieldType == COLUMN_TYPE.BOOLEAN || fieldType == COLUMN_TYPE.ENUM) {
         return 'select';
     }
-    if (fieldType == COLUMN_STATUS.DATETIME) {
+    if (fieldType == COLUMN_TYPE.DATETIME) {
         return 'dateTime';
     }
-    if (fieldType == COLUMN_STATUS.DATE) {
+    if (fieldType == COLUMN_TYPE.DATE) {
         return 'date';
     }
     return 'text';
@@ -226,7 +227,7 @@ const parseValueEnum = field => {
     if (valueType != 'select') {
         return null;
     }
-    if (field.type == COLUMN_STATUS.BOOLEAN) {
+    if (field.type == COLUMN_TYPE.BOOLEAN) {
         return {
             yes: {
                 text: '是',
@@ -238,7 +239,7 @@ const parseValueEnum = field => {
             },
         };
     }
-    if (field.type == COLUMN_STATUS.ENUM) {
+    if (field.type == COLUMN_TYPE.ENUM) {
         return buildEnumOptions(field.javaType, true);
     }
     return null;
@@ -286,10 +287,43 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
 
     if (showId) {
         listColumns.splice(0, 0, c({
-        label: 'ID',
-        name: 'id',
-        filtered: false,
+            label: 'ID',
+            name: 'id',
+            filtered: false,
         }));
+    }
+
+    //列表列的时间和日期列：做成期间选择器: {index: 1, column: c}
+    const rangeColumns = [];
+    listColumns.forEach((c, index) => {
+        //如果不搜索，则不用处理
+        if (c.hideInSearch) {
+            return;
+        }
+        if (c.valueType == 'date' || c.valueType == 'dateTime') {
+            c.hideInSearch = true;
+            rangeColumns.push({
+                index: index,
+                column: {
+                    ...c,
+                    hideInTable: true,
+                    hideInSearch: false,
+                    dataIndex: c.dataIndex + 'Range',
+                    valueType: c.valueType == 'date' ? 'dateRange' : 'dateTimeRange',
+                    search: {
+                        transform: value => {
+                            return {
+                                [c.dataIndex + 'Start']: value[0],
+                                [c.dataIndex + 'End']: value[1],
+                            };
+                        },
+                    },
+                },
+            });
+        }
+    });
+    if (rangeColumns.length > 0) {
+        rangeColumns.forEach(({ index, column}) => listColumns.splice(index, 0, column));
     }
 
     editColumns.splice(0, 0, c({
@@ -301,17 +335,17 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
     let opArr = [];
     if (updateable) {
         opArr.push({
-        execute: record => handleEditClick({visible: true, isCreate: false, record, }),
-        label: '编辑',
+            execute: record => handleEditClick({visible: true, isCreate: false, record, }),
+            label: '编辑',
         });
     }
     if (deleteable) {
         opArr.push({
-        type: 'danger',
-        execute: record => handleDelete(record.id, actionRef, pageInfo),
-        label: '删除',
-        confirm: true,
-        confirmText: '确认删除?',
+            type: 'danger',
+            execute: record => handleDelete(record.id, actionRef, pageInfo),
+            label: '删除',
+            confirm: true,
+            confirmText: '确认删除?',
         });
     }
     if (operationList.length > 0) {
@@ -319,28 +353,28 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
     }
     if (opArr.length > 0) {
         listColumns.push({
-        title: '操作',
-        dataIndex: 'option',
-        valueType: 'option',
-        render: (_, record) => {
-            let opIndex = 1;
-            return opArr.map(op => {
-            if (op.confirm) {
-                return (
-                <Popconfirm
-                    key={opIndex ++}
-                    title={op.confirmText}
-                    onConfirm={() => op.execute(record)}
-                    //onCancel={cancel}
-                    okText="确认"
-                    cancelText="取消">
-                    <Button type={op.type || 'normal'}>{op.label}</Button>
-                </Popconfirm>
-                );
-            }
-            return <Button key={opIndex ++} type={op.type || 'normal'} onClick={() => op.execute(record)}>{op.label}</Button>;
-            });
-        },
+            title: '操作',
+            dataIndex: 'option',
+            valueType: 'option',
+            render: (_, record) => {
+                let opIndex = 1;
+                return opArr.map(op => {
+                if (op.confirm) {
+                    return (
+                    <Popconfirm
+                        key={opIndex ++}
+                        title={op.confirmText}
+                        onConfirm={() => op.execute(record)}
+                        //onCancel={cancel}
+                        okText="确认"
+                        cancelText="取消">
+                        <Button type={op.type || 'normal'}>{op.label}</Button>
+                    </Popconfirm>
+                    );
+                }
+                return <Button key={opIndex ++} type={op.type || 'normal'} onClick={() => op.execute(record)}>{op.label}</Button>;
+                });
+            },
         });
     }
 
@@ -386,20 +420,63 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
 };
 
 /**
+ * 转换值，目前主要是将字符串类型转为时间类型。后续有其他需要再加
+ * @param {*} values 列值
+ * @param {*} columns 列定义
+ */
+const convertValues = (values, columns = []) => {
+    if (!values) {
+        return values;
+    }
+
+    const getType = name => {
+        const c = columns.find(c => c.dataIndex == name);
+        return c && c.fieldType ? c.fieldType : null;
+    };
+
+    const obj = {};
+    Object.keys(values).forEach(key => {
+        const type = getType(key);
+        let value = values[key];
+        if (value && type && (type == COLUMN_TYPE.DATETIME || type == COLUMN_TYPE.DATE)) {
+            value = moment(value);
+        } else if (value && type && type == COLUMN_TYPE.BOOLEAN) {
+            value = value === true ? 'true' : 'false';
+        }
+        obj[key] = value;
+    });
+
+    log('values', values, 'columns', columns, 'obj', obj);
+
+    return obj;
+};
+
+/**
  * 处理对象值，目前主要是将时间类型转为字符串类型。后续有其他需要再加
  * @param {*} obj 表单值
+ * @param {*} columns 列定义
  */
-const processValues = obj => {
+const processValues = (obj, columns) => {
     if (!obj) {
         return obj;
     }
+
+    const getType = name => {
+        const c = columns.find(c => c.dataIndex == name);
+        return c && c.fieldType ? c.fieldType : null;
+    };
+
     Object.keys(obj).forEach(key => {
+        const type = getType(key);
         let value = obj[key];
         if (value && value._isAMomentObject) {
             obj[key] = value.format('YYYY-MM-DD HH:mm:ss');
+        }
+        if (value && type && type == COLUMN_TYPE.BOOLEAN) {
+            obj[key] = value === 'true' ? true : false;
         }
     });
     return obj;
 };
 
-export { renderColumn, parsePageInfo, processValues };
+export { renderColumn, parsePageInfo, convertValues, processValues };
