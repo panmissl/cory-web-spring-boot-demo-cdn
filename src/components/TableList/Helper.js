@@ -1,10 +1,9 @@
-import { Button, DatePicker, Form, Input, Modal, notification, Radio, Select, Steps, InputNumber, Popconfirm } from 'antd';
-import React, { useState } from 'react';
-import moment from 'moment';
 import { log } from '@/utils/utils';
+import { Button, DatePicker, Form, Input, InputNumber, notification, Popconfirm, Radio, Select } from 'antd';
+import moment from 'moment';
+import React from 'react';
 
 const FormItem = Form.Item;
-const { Step } = Steps;
 const { TextArea } = Input;
 const { Option } = Select;
 const RadioGroup = Radio.Group;
@@ -158,6 +157,10 @@ const renderColumn = column => {
     },
     */
 
+    if (column.customEditRenderer) {
+        return column.customEditRenderer(column);
+    }
+
     if (column.dataIndex == 'id') {
         return null;
     }
@@ -253,7 +256,7 @@ const parseValueEnum = field => {
  * @param {*} actionRef 
  * @param {*} detailHandler 详情点击时的处理器，参数为record，就是一条记录
  */
-const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], showId = false }, handleEditClick, handleDelete, actionRef, detailHandler) => {
+const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {} }, handleEditClick, handleDelete, actionRef, detailHandler) => {
     const { modelMetaList } = window.USER;
     const modelMeta = modelMetaList.find(meta => meta.className == model);
     const { name, module, createable, updateable, deleteable, fieldList } = modelMeta;
@@ -268,6 +271,8 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
         fieldJavaType: field.javaType,
         fieldNullable: field.nullable,
         fieldLen: field.len,
+        customEditRenderer: editRenderer[field.name],
+        customListRenderer: listRenderer[field.name],
 
         title: field.label,
         tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
@@ -279,6 +284,7 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
         renderText: (val, record) => {
             return field.renderName && field.renderName.length > 0 ? (record && record.renderFieldMap ? record.renderFieldMap[field.renderName] : '') : val;
         },
+        render: listRenderer[field.name] ? listRenderer[field.name] : null,
     });
 
     const listColumns = fieldList.filter(f => f.showable).map(field => c(field));
@@ -480,3 +486,4 @@ const processValues = (obj, columns) => {
 };
 
 export { renderColumn, parsePageInfo, convertValues, processValues };
+

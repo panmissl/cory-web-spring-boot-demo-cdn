@@ -1,13 +1,12 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Input, Drawer, Popconfirm } from 'antd';
-import React, { useState, useRef, useMemo, Fragment } from 'react';
-import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
-import ProTable from '@ant-design/pro-table';
-import ProDescriptions from '@ant-design/pro-descriptions';
-import UpdateForm from './UpdateForm';
-import { doList, doSave, doDelete } from './service';
 import { log } from '@/utils/utils';
+import { PlusOutlined } from '@ant-design/icons';
+import ProDescriptions from '@ant-design/pro-descriptions';
+import ProTable from '@ant-design/pro-table';
+import { Button, Drawer, message } from 'antd';
+import React, { Fragment, useMemo, useRef, useState } from 'react';
 import { parsePageInfo, processValues } from './Helper';
+import { doDelete, doList, doSave } from './service';
+import EditForm from './Form';
 
 //表单文档：https://procomponents.ant.design/components/table/#search-%E6%90%9C%E7%B4%A2%E8%A1%A8%E5%8D%95
 
@@ -53,6 +52,10 @@ const handleDelete = async (id, actionRef, pageInfo) => {
 };
 
 /**
+ * https://ant.design/components/tag-cn/
+ * https://procomponents.ant.design/components/table#columns-%E5%88%97%E5%AE%9A%E4%B9%89
+ * https://pro.ant.design/index-cn
+ * 
  * props: 
  *     model="com.cory.model.Resource" mandatory
  *     params={{sort: 'VALUE DESC'}} default null
@@ -60,6 +63,8 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     ellipsisFieldList=['code', 'name'] default null 对于太长的字段，用这个来显示...并把宽度限制
  *     operationList=[{type: 'normal/danger/warning', label: '', execute: fn(record)}, ...]} default null 自定义操作，可以有多个。
  *     showId=true/false 是否显示ID字段，默认不显示
+ *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)
+ *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn
  */
 const TableList = (props) => {
   const [editModal, setEditModal] = useState({visible: false, isCreate: false, record: null, });
@@ -95,7 +100,7 @@ const TableList = (props) => {
       />
 
       {(pageInfo.createable || pageInfo.updateable) && editModal.visible && (
-      <UpdateForm 
+      <EditForm 
         onSubmit={async (value) => {
           const success = await handleSave(value, pageInfo);
 
