@@ -73,7 +73,7 @@ const buildEnumOptions = (fieldJavaType, isValueEnum) => {
 const renderColumnInput = column =>{
     if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT || column.fieldType == COLUMN_TYPE.DOUBLE) {
         return (
-            <InputNumber placeholder={`请输入${column.title}`} />
+            <InputNumber style={{width: '100%'}} placeholder={`请输入${column.title}`} />
         );
     }
     if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen <= 500) {
@@ -440,7 +440,7 @@ const convertValues = (values, columns = []) => {
         let value = values[key];
         if (value && type && (type == COLUMN_TYPE.DATETIME || type == COLUMN_TYPE.DATE)) {
             value = moment(value);
-        } else if (value && type && type == COLUMN_TYPE.BOOLEAN) {
+        } else if (type == COLUMN_TYPE.BOOLEAN) {
             value = value === true ? 'true' : 'false';
         }
         obj[key] = value;
