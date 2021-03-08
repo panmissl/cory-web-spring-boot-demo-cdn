@@ -1,5 +1,6 @@
 import { log } from '@/utils/utils';
 import { Button, DatePicker, Form, Input, InputNumber, notification, Popconfirm, Radio, Select } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import React from 'react';
 
@@ -339,23 +340,26 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
     }));
 
     let opArr = [];
+    if (operationList.length > 0) {
+        opArr = opArr.concat(operationList);
+    }
     if (updateable) {
         opArr.push({
-            execute: record => handleEditClick({visible: true, isCreate: false, record, }),
+            handler: record => handleEditClick({visible: true, isCreate: false, record, }),
             label: '编辑',
+            icon: <EditOutlined />,
         });
     }
     if (deleteable) {
         opArr.push({
-            type: 'danger',
-            execute: record => handleDelete(record.id, actionRef, pageInfo),
+            type: 'primary',
+            danger: true,
+            handler: record => handleDelete(record.id, actionRef, pageInfo),
             label: '删除',
             confirm: true,
             confirmText: '确认删除?',
+            icon: <DeleteOutlined />,
         });
-    }
-    if (operationList.length > 0) {
-        opArr = opArr.concat(operationList);
     }
     if (opArr.length > 0) {
         listColumns.push({
@@ -365,20 +369,35 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
             render: (_, record) => {
                 let opIndex = 1;
                 return opArr.map(op => {
-                if (op.confirm) {
-                    return (
-                    <Popconfirm
-                        key={opIndex ++}
-                        title={op.confirmText}
-                        onConfirm={() => op.execute(record)}
-                        //onCancel={cancel}
-                        okText="确认"
-                        cancelText="取消">
-                        <Button type={op.type || 'normal'}>{op.label}</Button>
-                    </Popconfirm>
-                    );
-                }
-                return <Button key={opIndex ++} type={op.type || 'normal'} onClick={() => op.execute(record)}>{op.label}</Button>;
+                    if (op.confirm) {
+                        return (
+                        <Popconfirm
+                            key={opIndex ++}
+                            title={op.confirmText}
+                            onConfirm={() => op.handler(record, actionRef, pageInfo)}
+                            //onCancel={cancel}
+                            okText="确认"
+                            cancelText="取消">
+                            <Button
+                                type={op.type || 'normal'} 
+                                danger={op.danger || false} 
+                                loading={op.loading || false} 
+                                icon={op.icon}>
+                                {op.label}
+                            </Button>
+                        </Popconfirm>
+                        );
+                    }
+                    
+                    return <Button 
+                        key={opIndex ++} 
+                        type={op.type || 'normal'} 
+                        onClick={() => op.handler(record, actionRef, pageInfo)} 
+                        danger={op.danger || false} 
+                        loading={op.loading || false} 
+                        icon={op.icon}>
+                            {op.label}
+                    </Button>
                 });
             },
         });
@@ -480,6 +499,11 @@ const processValues = (obj, columns) => {
         }
         if (value && type && type == COLUMN_TYPE.BOOLEAN) {
             obj[key] = value === 'true' ? true : false;
+        }
+
+        //最后，移除undefined的属性
+        if (obj[key] === undefined) {
+            delete obj[key];
         }
     });
     return obj;

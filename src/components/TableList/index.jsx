@@ -56,15 +56,18 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  * https://procomponents.ant.design/components/table#columns-%E5%88%97%E5%AE%9A%E4%B9%89
  * https://pro.ant.design/index-cn
  * 
+ * actionRef的方法：actionRef.current.reload(), actionRef.current.reset()
+ * 
  * props: 
  *     model="com.cory.model.Resource" mandatory
  *     params={{sort: 'VALUE DESC'}} default null
  *     pageSize=20 default 20
  *     ellipsisFieldList=['code', 'name'] default null 对于太长的字段，用这个来显示...并把宽度限制
- *     operationList=[{type: 'normal/danger/warning', label: '', execute: fn(record)}, ...]} default null 自定义操作，可以有多个。
+ *     operationList=[{label: '', handler: fn(record, actionRef), type: 'primary | normal | dashed | text', danger: true/false, icon: xx, loading: true/false}, ...]} default null 自定义操作，可以有多个。
  *     showId=true/false 是否显示ID字段，默认不显示
  *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)
  *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn
+ *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />}] 操作按钮列表，和“新建”放一起
  */
 const TableList = (props) => {
   const [editModal, setEditModal] = useState({visible: false, isCreate: false, record: null, });
@@ -72,6 +75,23 @@ const TableList = (props) => {
   const [row, setRow] = useState();
   
   const pageInfo = useMemo(() => parsePageInfo(props, setEditModal, handleDelete, actionRef, setRow), []);
+
+  const toolbar = [];
+  let toolbarIndex = 1;
+  if (pageInfo.createable) {
+    toolbar.push((
+      <Button key={toolbarIndex++} type="primary" onClick={() => setEditModal({visible: true, isCreate: true, record: null, })}>
+        <PlusOutlined /> 新建
+      </Button>
+    ));
+  }
+  if (props.toolbar && props.toolbar.length > 0) {
+    props.toolbar.forEach(button => toolbar.push((
+      <Button key={toolbarIndex++} type={button.type} onClick={() => button.handler(actionRef)} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
+        {button.label}
+      </Button>
+    )));
+  }
 
   return (
     <Fragment>
@@ -90,11 +110,7 @@ const TableList = (props) => {
         */
         params={props.params || {}}
         search={pageInfo.searchEnable}
-        toolBarRender={() => pageInfo.createable ? [
-          <Button type="primary" onClick={() => setEditModal({visible: true, isCreate: true, record: null, })}>
-            <PlusOutlined /> 新建
-          </Button>,
-        ] : []}
+        toolBarRender={() => toolbar}
         request={(params, sorter, filter) => doList({ url: pageInfo.listUrl, params, sorter, filter: processValues(filter, pageInfo.listColumns)})}
         columns={pageInfo.listColumns}
       />
