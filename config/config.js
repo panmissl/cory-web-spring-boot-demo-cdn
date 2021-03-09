@@ -133,6 +133,21 @@ export default defineConfig({
               ],
             },
             {
+              path: '/sql',
+              name: 'SQL执行',
+              icon: 'consoleSql',
+              routes: [
+                {
+                  name: 'SQL执行',
+                  path: '/sql/execute',
+                  component: './sql/Sql',
+                },
+                {
+                  redirect: '/error/404'
+                },
+              ],
+            },
+            {
               path: '/demo',
               name: '测试管理',
               icon: 'desktop',
