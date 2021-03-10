@@ -72,6 +72,10 @@ const Page = () => {
   };
   
   const executeSql =  async () => {
+    if (!password || password == "") {
+      message.error('请输入密码');
+      return;
+    }
     setLoading(true);
     setResult(null);
     const hide = message.loading('执行中...');
