@@ -17,9 +17,10 @@ DONE:
     新建、编辑时的自定义？比如枚举、下拉等
     自定义：渲染、过滤条件渲染（主要是枚举）、自定义操作
     分配资源那里自定义
+    增加执行sql的功能，图标：<ConsoleSqlOutlined />
 
 TODO:
-    增加执行sql的功能，图标：<ConsoleSqlOutlined />
+    首页
 
 扩展：
     字段定义：比如密码：password：true
