@@ -56,36 +56,34 @@ export default defineConfig({
           ],
         },
         {
-          path: '/',
-          component: '../layouts/BasicLayout',
-          //Routes: ['src/pages/Authorized'],
-          //authority: ['admin', 'user'],
+          name: 'error',
+          path: '/error',
+          hideInMenu: true,
           routes: [
             {
-              name: 'error',
-              path: '/error',
-              hideInMenu: true,
-              routes: [
-                {
-                  name: '403',
-                  path: '/error/403',
-                  component: './exception/403',
-                },
-                {
-                  name: '404',
-                  path: '/error/404',
-                  component: './exception/404',
-                },
-                {
-                  name: '500',
-                  path: '/error/500',
-                  component: './exception/500',
-                },
-                {
-                  redirect: '/error/404'
-                },
-              ],
+              name: '403',
+              path: '/error/403',
+              component: './exception/403',
             },
+            {
+              name: '404',
+              path: '/error/404',
+              component: './exception/404',
+            },
+            {
+              name: '500',
+              path: '/error/500',
+              component: './exception/500',
+            },
+            {
+              redirect: '/error/404',
+            },
+          ],
+        },
+        {
+          path: '/',
+          component: '../layouts/BasicLayout',
+          routes: [
             {
               name: '首页',
               icon: 'dashboard',
@@ -128,7 +126,7 @@ export default defineConfig({
                   component: './base/Feedback',
                 },
                 {
-                  redirect: '/error/404'
+                  redirect: '/error/404',
                 },
               ],
             },
@@ -143,7 +141,7 @@ export default defineConfig({
                   component: './sql/Sql',
                 },
                 {
-                  redirect: '/error/404'
+                  redirect: '/error/404',
                 },
               ],
             },
@@ -158,19 +156,19 @@ export default defineConfig({
                   component: './demo/Demo',
                 },
                 {
-                  redirect: '/error/404'
+                  redirect: '/error/404',
                 },
               ],
             },
             {
-              redirect: '/error/404'
+              redirect: '/error/404',
             },
           ],
         },
       ],
     },
     {
-      redirect: '/error/404'
+      redirect: '/error/404',
     },
   ],
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
