@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import Authorized from '@/utils/Authorized';
 import { initMeta } from '@/utils/utils';
+import { filterMenu } from '@/utils/coryAutority';
 import ProLayout, { SettingDrawer } from '@ant-design/pro-layout';
 import { getMatchMenu } from '@umijs/route-utils';
 import { Button, Result } from 'antd';
@@ -30,7 +31,7 @@ const noMatch = (
  * use Authorized check all menu item
  */
 const menuDataRender = (menuList) =>
-  menuList.map((item) => {
+  filterMenu(menuList).map((item) => {
     const localItem = {
       ...item,
       children: item.children ? menuDataRender(item.children) : undefined,
