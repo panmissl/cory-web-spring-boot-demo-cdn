@@ -2,7 +2,7 @@ import { log } from '@/utils/utils';
 import { PlusOutlined } from '@ant-design/icons';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import ProTable from '@ant-design/pro-table';
-import { Button, Drawer, message } from 'antd';
+import { Button, Drawer, message, Upload } from 'antd';
 import React, { Fragment, useMemo, useRef, useState } from 'react';
 import { parsePageInfo, processValues } from './Helper';
 import { doDelete, doList, doSave } from './service';
@@ -67,7 +67,40 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     showId=true/false 是否显示ID字段，默认不显示
  *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)
  *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn
- *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />}] 操作按钮列表，和“新建”放一起
+ *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, upload: true/false, uploadProps: {}}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
+ * 
+ * toolbar上传例子：注意onChange里成功后的刷新
+  const [uploadLoading, setUploadLoading] = useState(false);
+
+  const uploadProps = {
+    name: 'file',
+    showUploadList: false,
+    action: '/ajax/guess/idiomquestion/upload',
+    beforeUpload: () => setUploadLoading(true),
+    onChange(info) {
+      if (info.file.status !== 'uploading') {
+        console.log(info.file, info.fileList);
+      }
+      if (info.file.status === 'done') {
+        setUploadLoading(false);
+        message.success(`上传成功`);
+        info.actionRef.current.reset();
+      } else if (info.file.status === 'error') {
+        message.error(`上传失败.`);
+        setUploadLoading(false);
+      }
+    },
+  };
+
+  const toolbar = [{
+    label: '上传问题',
+    handler: () => {},
+    type: 'primary',
+    icon: <CloudUploadOutlined />,
+    upload: true,
+    uploadProps,
+    loading: uploadLoading,
+  }];
  */
 const TableList = (props) => {
   const [editModal, setEditModal] = useState({visible: false, isCreate: false, record: null, });
@@ -86,11 +119,28 @@ const TableList = (props) => {
     ));
   }
   if (props.toolbar && props.toolbar.length > 0) {
-    props.toolbar.forEach(button => toolbar.push((
-      <Button key={toolbarIndex++} type={button.type} onClick={() => button.handler(actionRef)} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
-        {button.label}
-      </Button>
-    )));
+    props.toolbar.forEach(button => {
+      //需要：button.upload, button.uploadProps，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
+      if (button.upload) {
+        //传递actionRef参数
+        const uploadProps = button.uploadProps || {};
+        const oriOnChange = uploadProps.onChange || (() => {});
+        uploadProps.onChange = info => oriOnChange({...info, actionRef});
+        toolbar.push((
+          <Upload {...uploadProps}>
+            <Button key={toolbarIndex++} type={button.type} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
+              {button.label}
+            </Button>
+          </Upload>
+        ));
+      } else {
+        toolbar.push((
+          <Button key={toolbarIndex++} type={button.type} onClick={() => button.handler(actionRef)} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
+            {button.label}
+          </Button>
+        ));
+      }
+    });
   }
 
   return (
