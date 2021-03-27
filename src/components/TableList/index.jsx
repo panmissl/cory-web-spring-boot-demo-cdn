@@ -2,7 +2,7 @@ import { log } from '@/utils/utils';
 import { PlusOutlined } from '@ant-design/icons';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import ProTable from '@ant-design/pro-table';
-import { Button, Drawer, message, Upload } from 'antd';
+import { Button, Drawer, message, Upload, Tooltip } from 'antd';
 import React, { Fragment, useMemo, useRef, useState } from 'react';
 import { parsePageInfo, processValues } from './Helper';
 import { doDelete, doList, doSave } from './service';
@@ -67,7 +67,7 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     showId=true/false 是否显示ID字段，默认不显示
  *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)
  *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn
- *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, upload: true/false, uploadProps: {}}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
+ *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, tooltip: String(可选), upload: true/false, uploadProps: {}}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
  * 
  * toolbar上传例子：注意onChange里成功后的刷新
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -128,17 +128,33 @@ const TableList = (props) => {
         uploadProps.onChange = info => oriOnChange({...info, actionRef});
         toolbar.push((
           <Upload {...uploadProps}>
-            <Button key={toolbarIndex++} type={button.type} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
-              {button.label}
-            </Button>
+            {button.tooltip ? (
+              <Tooltip title={button.tooltip}>
+                <Button key={toolbarIndex++} type={button.type} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
+                  {button.label}
+                </Button>
+              </Tooltip>
+            ) : (
+              <Button key={toolbarIndex++} type={button.type} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
+                {button.label}
+              </Button>
+            )}
           </Upload>
         ));
       } else {
-        toolbar.push((
-          <Button key={toolbarIndex++} type={button.type} onClick={() => button.handler(actionRef)} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
-            {button.label}
-          </Button>
-        ));
+        toolbar.push(
+          button.tooltip ? (
+            <Tooltip title={button.tooltip}>
+              <Button key={toolbarIndex++} type={button.type} onClick={() => button.handler(actionRef)} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
+                {button.label}
+              </Button>
+            </Tooltip>
+          ) : (
+            <Button key={toolbarIndex++} type={button.type} onClick={() => button.handler(actionRef)} danger={button.danger || false} loading={button.loading || false} icon={button.icon}>
+              {button.label}
+            </Button>
+          )
+        );
       }
     });
   }
