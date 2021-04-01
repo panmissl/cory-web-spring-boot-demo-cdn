@@ -126,6 +126,11 @@ export default defineConfig({
                   component: './base/Feedback',
                 },
                 {
+                  name: '操作日志',
+                  path: '/base/actionlog',
+                  component: './base/ActionLog',
+                },
+                {
                   redirect: '/error/404',
                 },
               ],
