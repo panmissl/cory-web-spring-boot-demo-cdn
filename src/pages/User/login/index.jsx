@@ -37,7 +37,7 @@ const urlParams = () => {
 const redirect = () => {
   const params = urlParams();
   if (!params || !params['returnUrl']) {
-    window.location.href = '/';
+    window.location.href = window.successUrl || "/";
     return;
   }
   let returnUrl = params['returnUrl'];

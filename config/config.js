@@ -37,6 +37,12 @@ export default defineConfig({
       component: '../layouts/BlankLayout',
       routes: [
         {
+          name: '首页',
+          icon: 'dashboard',
+          path: '/',
+          component: './Index',
+        },
+        {
           path: '/login',
           component: '../layouts/UserLayout',
           routes: [
@@ -87,7 +93,7 @@ export default defineConfig({
             {
               name: '首页',
               icon: 'dashboard',
-              path: '/',
+              path: '/admin',
               component: './dashboard/workplace',
             },
             {
