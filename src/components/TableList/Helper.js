@@ -264,8 +264,8 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
 
     const modelBigName = model.substr(model.lastIndexOf('.') + 1);
     //const modelSmallName = modelBigName.substr(0, 1).toLowerCase() + modelBigName.substr(1);
+    //const baseUrl = '/ajax/' + module.toLowerCase() + '/' + modelSmallName;
     const baseUrl = '/ajax/' + module.toLowerCase() + '/' + modelBigName.toLowerCase();
-    const baseUrl = '/ajax/' + module.toLowerCase() + '/' + modelSmallName;
     const listUrl = baseUrl + '/listData';
     const saveUrl = baseUrl + '/save';
     const deleteUrl = baseUrl + '/delete/';
