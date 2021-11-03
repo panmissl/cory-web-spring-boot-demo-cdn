@@ -29,7 +29,7 @@ const isAuthorized = (menu, resource) => {
  * @param {*} menu { path: '', children: [menu] } children 可选
  */
 const authorized = menu => {
-  const resources = window.USER.resources || [];
+  const resources = (window.USER || {}).resources || [];
   for (let i=0; i<resources.length; i++) {
     if (menu.path && isAuthorized(menu, resources[i])) {
       return true;
