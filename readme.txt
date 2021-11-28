@@ -7,6 +7,8 @@
 
 列表+详情+新增+编辑+删除：TableList
 
+配置菜单：config/config.js
+
 本地运行：
 cnpm start
 注意：如果没有cnpm，请先安装。如果启动错误，请先cnpm install
