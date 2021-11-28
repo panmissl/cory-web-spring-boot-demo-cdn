@@ -8,6 +8,7 @@
 列表+详情+新增+编辑+删除：TableList
 
 配置菜单：config/config.js
+图片放置在public文件夹下，public文件夹的文件在部署时会直接部署在和js一样的目录，所以部署后访问：比如访问public下的logo.png文件：DOMAIN/logo.png即可
 
 本地运行：
 cnpm start
