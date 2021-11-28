@@ -7,6 +7,10 @@
 
 列表+详情+新增+编辑+删除：TableList
 
+本地运行：
+cnpm start
+注意：如果没有cnpm，请先安装。如果启动错误，请先cnpm install
+
 部署：
 1、运行：cnpm run build 进行打包
 2、打包完成后将dist目录下的所有文件上传到服务器目录即可
