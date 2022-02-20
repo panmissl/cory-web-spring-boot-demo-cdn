@@ -1,7 +1,9 @@
 import { Form, Button, Col, Input, Popover, Progress, Row, Select, message } from 'antd';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, connect, history, FormattedMessage, formatMessage } from 'umi';
 import styles from './style.less';
+import Keyevent from "react-keyevent";
+
 const FormItem = Form.Item;
 const { Option } = Select;
 const InputGroup = Input.Group;
@@ -29,10 +31,18 @@ const passwordProgressMap = {
 };
 
 const Register = ({ submitting, dispatch, userAndregister }) => {
+
+  if (window.registerEnable !== true && window.registerEnable !== 'true' && window.registerEnable !== 'TRUE') {
+    return <div style={{color: 'red', textAlign: 'center'}}>Illegal Access.</div>;
+  }
+
   const [count, setcount] = useState(0);
   const [visible, setvisible] = useState(false);
   const [prefix, setprefix] = useState('86');
   const [popover, setpopover] = useState(false);
+
+  const formRef = useRef();
+
   const confirmDirty = false;
   let interval;
   const [form] = Form.useForm();
@@ -158,11 +168,20 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
   };
 
   return (
+    <Keyevent
+      events={{
+        onEnter: (e) => {
+          //console.log('enter key event', e, formRef);
+          formRef.current.submit();
+        },
+      }}
+      needFocusing={false}
+    >
     <div className={styles.main}>
       <h3>
         <FormattedMessage id="userandregister.register.register" />
       </h3>
-      <Form form={form} name="UserRegister" onFinish={onFinish}>
+      <Form form={form} name="UserRegister" onFinish={onFinish} ref={formRef}>
         <FormItem
           name="mail"
           rules={[
@@ -356,6 +375,7 @@ const Register = ({ submitting, dispatch, userAndregister }) => {
         </FormItem>
       </Form>
     </div>
+    </Keyevent>
   );
 };
 

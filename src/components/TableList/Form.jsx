@@ -5,10 +5,10 @@ import { convertValues, processValues, renderColumn } from './Helper';
 
 const formLayout = {
   labelCol: {
-    span: 7,
+    span: 6,
   },
   wrapperCol: {
-    span: 13,
+    span: 18,
   },
 };
 
@@ -58,7 +58,7 @@ const EditForm = (props) => {
 
   return (
     <Modal
-      width={640}
+      width={840}
       bodyStyle={{
         padding: '32px 40px 48px',
       }}

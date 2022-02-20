@@ -52,12 +52,21 @@ export default defineConfig({
               component: './User/login',
             },
             {
+              redirect: '/error/404',
+            },
+          ],
+        },
+        {
+          path: '/register',
+          component: '../layouts/UserLayout',
+          routes: [
+            {
               path: '/register',
               name: '注册',
               component: './User/register',
             },
             {
-              redirect: '/error/404'
+              redirect: '/error/404',
             },
           ],
         },

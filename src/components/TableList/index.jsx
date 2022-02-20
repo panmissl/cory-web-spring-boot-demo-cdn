@@ -65,9 +65,17 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     ellipsisFieldList=['code', 'name'] default null 对于太长的字段，用这个来显示...并把宽度限制
  *     operationList=[{label: '', handler: fn(record, actionRef), type: 'primary | normal | dashed | text', danger: true/false, icon: xx, loading: true/false}, ...]} default null 自定义操作，可以有多个。
  *     showId=true/false 是否显示ID字段，默认不显示
- *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)
- *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn
+ *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。
+ *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn。如果renderer传false，则不显示此字段，提交时也不会提交此字段
+ *     filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
+ *     hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
  *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, tooltip: String(可选), upload: true/false, uploadProps: {}}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
+ *     createable: 是否可新建。优先级比@Model里设置的高
+ *     updateable: 是否可修改。优先级比@Model里设置的高
+ *     deleteable: 是否可删除。优先级比@Model里设置的高
+ *     richText: 是否富文本编辑器。优先级比@Model里设置的高
+ *     //忽略此行：uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。参数(参见：RichEditor)：object: {file(文件体), progress(Fn(int progress)), libraryId(String), success(Fn(res))[res须为一个包含已上传文件url属性的对象], error(Fn(err))}
+ *     uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。两个参数：file: 上传的文件，successCallback(url)：上传成功后，回调到系统里，系统做处理（添加到富文本里），参数是url。一般可以用OssUploader导出的uploadToOss方法即可
  * 
  * toolbar上传例子：注意onChange里成功后的刷新
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -108,10 +116,16 @@ const TableList = (props) => {
   const [row, setRow] = useState();
   
   const pageInfo = useMemo(() => parsePageInfo(props, setEditModal, handleDelete, actionRef, setRow), []);
-
+  
   const toolbar = [];
   let toolbarIndex = 1;
-  if (pageInfo.createable) {
+  
+  let { createable } = props;
+  if (createable === undefined || createable === null) {
+    createable = pageInfo.createable;
+  }
+
+  if (createable) {
     toolbar.push((
       <Button key={toolbarIndex++} type="primary" onClick={() => setEditModal({visible: true, isCreate: true, record: null, })}>
         <PlusOutlined /> 新建
@@ -181,7 +195,7 @@ const TableList = (props) => {
         columns={pageInfo.listColumns}
       />
 
-      {(pageInfo.createable || pageInfo.updateable) && editModal.visible && (
+      {(createable || updateable) && editModal.visible && (
       <EditForm 
         onSubmit={async (value) => {
           const success = await handleSave(value, pageInfo);

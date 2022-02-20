@@ -1,9 +1,11 @@
 import { LockTwoTone, UserOutlined } from '@ant-design/icons';
 import ProForm, { ProFormText } from '@ant-design/pro-form';
 import { Alert, message } from 'antd';
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { connect } from 'umi';
 import styles from './index.less';
+import Keyevent from "react-keyevent";
+import Captcha from '@/components/Captcha';
 
 const LoginMessage = ({ content }) => (
   <Alert
@@ -62,8 +64,12 @@ const Login = (props) => {
   const { loginInfo = { }, submitting } = props;
   const { loginError, loginMode = false } = loginInfo;
 
+  const [captcha, setCaptcha] = useState();
+
+  const formRef = useRef();
+
   useEffect(() => {
-    console.log('loginInfo', loginInfo);
+    // console.log('loginInfo', loginInfo);
   
     if (window.USER) {
       loginSuccess(loginMode);
@@ -71,14 +77,27 @@ const Login = (props) => {
   }, [loginMode]);
 
   const handleSubmit = (values) => {
+    if (!captcha || captcha == '') {
+      message.error('请输入验证码');
+      return;
+    }
     const { dispatch } = props;
     dispatch({
       type: 'user/login',
-      payload: { ...values },
+      payload: { ...values, captcha },
     });
   };
 
   return (
+    <Keyevent
+      events={{
+        onEnter: (e) => {
+          // console.log('enter key event', e, formRef)
+          formRef.current.submit();
+        },
+      }}
+      needFocusing={false}
+    >
     <div className={styles.main}>
       <ProForm
         initialValues={{
@@ -98,6 +117,7 @@ const Login = (props) => {
           handleSubmit(values);
           return Promise.resolve();
         }}
+        formRef={formRef}
       >
         {loginError && (
           <LoginMessage
@@ -154,8 +174,10 @@ const Login = (props) => {
           </a>
         </div>
         */}
+        <Captcha onChange={v => setCaptcha(v)} />
       </ProForm>
     </div>
+    </Keyevent>
   );
 };
 

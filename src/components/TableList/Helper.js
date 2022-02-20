@@ -1,8 +1,10 @@
 import { log } from '@/utils/utils';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { Button, DatePicker, Form, Input, InputNumber, notification, Popconfirm, Radio, Select } from 'antd';
+import RichEditor, {initRichEditorValue} from '@/components/RichEditor';
 import moment from 'moment';
 import React from 'react';
+import DatadictEditor from '@/components/form/DatadictEditor';
 
 const FormItem = Form.Item;
 const { TextArea } = Input;
@@ -68,9 +70,12 @@ const buildEnumOptions = (fieldJavaType, isValueEnum) => {
 
 /**
  * 根据字段类型返回字段输入框。比如文本返回输入框，枚举返回下拉框
- * @param {*} column 字段定义：{ filedType, title, fieldLen, fieldJavaType }
+ * @param {*} column 字段定义：{ filedType, title, fieldLen, fieldJavaType, richText, uploadHandler(richText为true时需要) }
  */
-const renderColumnInput = column =>{
+const renderColumnInput = column => {
+    if (column.datadictTypeValue && column.datadictTypeValue.length > 0) {
+        return <DatadictEditor fieldMeta={column} />;
+    }
     if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT || column.fieldType == COLUMN_TYPE.DOUBLE) {
         return (
             <InputNumber style={{width: '100%'}} placeholder={`请输入${column.title}`} />
@@ -79,6 +84,11 @@ const renderColumnInput = column =>{
     if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen <= 500) {
         return (
             <Input placeholder={`请输入${column.title}`} />
+        );
+    }
+    if (column.fieldType == COLUMN_TYPE.TEXT || (column.richText)) {
+        return (
+            <RichEditor placeholder={`请输入${column.title}`} uploadHandler={column.uploadHandler} />
         );
     }
     if (column.fieldType == COLUMN_TYPE.TEXT || (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 500)) {
@@ -146,6 +156,9 @@ const renderColumn = column => {
     fieldJavaType: field.javaType,
     fieldNullable: field.nullable,
     fieldLen: field.len,
+    richText: field.richText,
+    datadictTypeValue: field.datadictTypeValue,
+    uploadHandler: field.uploadHandler,//richText为true时需要
 
     title: field.label,
     tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
@@ -157,10 +170,6 @@ const renderColumn = column => {
         return field.renderName && field.renderName.length > 0 ? (record && record.renderFieldMap ? record.renderFieldMap[field.renderName] : '') : val;
     },
     */
-
-    if (column.customEditRenderer) {
-        return column.customEditRenderer(column);
-    }
 
     if (column.dataIndex == 'id') {
         return null;
@@ -174,7 +183,7 @@ const renderColumn = column => {
         message: `请${requireTip(column.fieldType)}${column.title}！`,
         });
     }
-    if (column.fieldType == COLUMN_TYPE.VARCHAR || column.fieldType == COLUMN_TYPE.TEXT && column.fieldLen > 0) {
+    if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 0) {
         rules.push({
         max: column.fieldLen,
         message: `最大长度为${column.fieldLen}！`,
@@ -196,7 +205,7 @@ const renderColumn = column => {
 
     return (
         <FormItem key={column.dataIndex} name={column.dataIndex} label={column.title} rules={rules} tooltip={column.tooltip}>
-        {renderColumnInput(column)}
+        {column.customEditRenderer ? column.customEditRenderer(column) : renderColumnInput(column)}
         </FormItem>
     );
 };
@@ -249,18 +258,38 @@ const parseValueEnum = field => {
     return null;
 };
 
+const _isFilterEnable = (enableFromPage, enableFromField) => {
+    //如果页面已经设置了过滤，则优先级最高，直接显示过滤
+    if (enableFromPage === true) {
+        return true;
+    }
+    if (enableFromPage === false) {
+        return false;
+    }
+    //页面没有设置，用字段上设置的
+    return enableFromField;
+};
+
+const _renderRichText = (value, record, field) => <div dangerouslySetInnerHTML={{__html: value}} style={{display: 'inline-block'}} />;
+
 /**
- * 
- * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false }
+ * uploadHandler 有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。一般可以用OssUploader导出的uploadToOss方法即可
+ * filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
+ * hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
+ * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, filterFieldMap = {}, hideInListFieldList, updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null }
  * @param {*} handleEditClick 点击编辑按钮时的处理器，参数：{visible: true, isCreate: false, record, }
  * @param {*} handleDelete 点击删除时的处理器，参数：{id, actionRef, pageInfo, }
  * @param {*} actionRef 
  * @param {*} detailHandler 详情点击时的处理器，参数为record，就是一条记录
  */
-const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {} }, handleEditClick, handleDelete, actionRef, detailHandler) => {
+const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, filterFieldMap = {}, hideInListFieldList = [], updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null }, handleEditClick, handleDelete, actionRef, detailHandler) => {
     const { modelMetaList } = window.USER;
     const modelMeta = modelMetaList.find(meta => meta.className == model);
-    const { name, module, createable, updateable, deleteable, fieldList } = modelMeta;
+    const { name, module, createable, updateable: updateableModel, deleteable: deleteableModel, fieldList } = modelMeta;
+
+    //优先使用JS传过来的
+    const updateable = updateableFirst === undefined || updateableFirst === null ? updateableModel : updateableFirst;
+    const deleteable = deleteableFirst === undefined || deleteableFirst === null ? deleteableModel : deleteableFirst;
 
     const modelBigName = model.substr(model.lastIndexOf('.') + 1);
     //const modelSmallName = modelBigName.substr(0, 1).toLowerCase() + modelBigName.substr(1);
@@ -275,6 +304,9 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
         fieldJavaType: field.javaType,
         fieldNullable: field.nullable,
         fieldLen: field.len,
+        richText: field.richText,
+        datadictTypeValue: field.datadictTypeValue,
+        uploadHandler: uploadHandler,
         customEditRenderer: editRenderer[field.name],
         customListRenderer: listRenderer[field.name],
 
@@ -283,16 +315,16 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
         dataIndex: field.name,
         valueType: parseValueType(field.type, field.len),
         valueEnum: parseValueEnum(field),
-        hideInSearch: !field.filtered,
+        hideInSearch: !_isFilterEnable(filterFieldMap[field.name], field.filtered),
         ellipsis: ellipsisFieldList.indexOf(field.name) >= 0,
         renderText: (val, record) => {
             return field.renderName && field.renderName.length > 0 ? (record && record.renderFieldMap ? record.renderFieldMap[field.renderName] : '') : val;
         },
-        render: listRenderer[field.name] ? listRenderer[field.name] : null,
+        render: listRenderer[field.name] ? listRenderer[field.name] : field.richText ? (value, record) => _renderRichText(value, record, field) : null,
     });
 
-    const listColumns = fieldList.filter(f => f.showable).map(field => c(field));
-    const editColumns = fieldList.filter(f => f.showable && f.editable).map(field => c(field));
+    const listColumns = fieldList.filter(f => f.showable && (hideInListFieldList).indexOf(f.name) < 0).map(field => c(field));
+    const editColumns = fieldList.filter(f => f.showable && f.editable && editRenderer[f.name] !== false).map(field => c(field));
     const detailColumns = fieldList.filter(f => f.showable).map(field => c(field));
 
     if (showId) {
@@ -333,7 +365,7 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
         }
     });
     if (rangeColumns.length > 0) {
-        rangeColumns.forEach(({ index, column}) => listColumns.splice(index, 0, column));
+        rangeColumns.forEach(({ column, index}) => listColumns.splice(index, 0, column));
     }
 
     editColumns.splice(0, 0, c({
@@ -447,8 +479,24 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
     return pageInfo;
 };
 
+
+const _getType = (name, columns) => {
+    const c = columns.find(c => c.dataIndex == name);
+    return c && c.fieldType ? c.fieldType : null;
+};
+
+const _isRichText = (name, columns) => {
+    const c = columns.find(c => c.dataIndex == name);
+    if (!c) {
+        return false;
+    }
+    return c.richText === true || c.richText === 'true';
+};
+
 /**
- * 转换值，目前主要是将字符串类型转为时间类型。后续有其他需要再加
+ * 转换值，目前主要是对以下类型的处理，后续有其他需要再加：
+ * 字符串类型转为时间类型
+ * 将富文本类型值初始化
  * @param {*} values 列值
  * @param {*} columns 列定义
  */
@@ -457,20 +505,20 @@ const convertValues = (values, columns = []) => {
         return values;
     }
 
-    const getType = name => {
-        const c = columns.find(c => c.dataIndex == name);
-        return c && c.fieldType ? c.fieldType : null;
-    };
-
     const obj = {};
     Object.keys(values).forEach(key => {
-        const type = getType(key);
+        const type = _getType(key, columns);
+        const richText = _isRichText(key, columns);
         let value = values[key];
         if (value && type && (type == COLUMN_TYPE.DATETIME || type == COLUMN_TYPE.DATE)) {
             value = moment(value);
         } else if (type == COLUMN_TYPE.BOOLEAN) {
             value = value === true ? 'true' : 'false';
         }
+        if (richText) {
+            value = initRichEditorValue(value);
+        }
+
         obj[key] = value;
     });
 
@@ -480,7 +528,10 @@ const convertValues = (values, columns = []) => {
 };
 
 /**
- * 处理对象值，目前主要是将时间类型转为字符串类型。后续有其他需要再加
+ * 处理对象值，目前主要是对以下类型的处理，后续有其他需要再加：
+ * 时间类型：格式化
+ * 布尔类型：转为true，false
+ * 富广本类型：转为html
  * @param {*} obj 表单值
  * @param {*} columns 列定义
  */
@@ -489,19 +540,18 @@ const processValues = (obj, columns) => {
         return obj;
     }
 
-    const getType = name => {
-        const c = columns.find(c => c.dataIndex == name);
-        return c && c.fieldType ? c.fieldType : null;
-    };
-
     Object.keys(obj).forEach(key => {
-        const type = getType(key);
+        const type = _getType(key, columns);
+        const richText = _isRichText(key, columns);
         let value = obj[key];
         if (value && value._isAMomentObject) {
             obj[key] = value.format('YYYY-MM-DD HH:mm:ss');
         }
         if (value && type && type == COLUMN_TYPE.BOOLEAN) {
             obj[key] = value === 'true' ? true : false;
+        }
+        if (value && richText) {
+            obj[key] = value.toHTML();
         }
 
         //最后，移除undefined的属性
@@ -512,5 +562,5 @@ const processValues = (obj, columns) => {
     return obj;
 };
 
-export { renderColumn, parsePageInfo, convertValues, processValues };
+export { renderColumn, parsePageInfo, convertValues, processValues, COLUMN_TYPE };
 

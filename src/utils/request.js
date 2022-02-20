@@ -2,6 +2,56 @@
  * request 网络请求工具
  * 更详细的 api 文档: https://github.com/umijs/umi-request
  */
+/*
+用法：
+如果有场景返回的数据不是标准结构，不需要自动解析返回数据，请求时加上此参数：rawResponse，就会返回原始的response
+然后可以这样：response.status, response.statusText, response.json()等
+
+注意：参数已经优化过，get和post时的参数都叫data
+request.get(url[, options])
+request.post(url[, options])
+request.delete(url[, options])
+request.put(url[, options])
+request.patch(url[, options])
+request.head(url[, options])
+request.options(url[, options])
+
+request
+  .get('/api/v1/xxx?id=1')
+  .then(function(response) {
+    console.log(response);
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
+
+// 也可将 URL 的参数放到 options.params 里
+request
+  .get('/api/v1/xxx', {
+    params: {
+      id: 1,
+    },
+  })
+  .then(function(response) {
+    console.log(response);
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
+
+request
+  .post('/api/v1/user', {
+    data: {
+      name: 'Mike',
+    },
+  })
+  .then(function(response) {
+    console.log(response);
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
+*/
 import { extend } from 'umi-request';
 import { notification } from 'antd';
 import { initMeta, getPostToken, log, error } from '@/utils/utils';
@@ -88,7 +138,7 @@ request.use(async (ctx, next) => {
   log('request: ', ctx.req, 'response: ', ctx.res);
 });
 
-request.interceptors.response.use(async response => {
+request.interceptors.response.use(async (response, options) => {
   if (response.status == 401 || response.status == 403) {
     window.location.href = '/error/403';
     return null;
@@ -96,6 +146,11 @@ request.interceptors.response.use(async response => {
   if (response.status >= 500) {
     window.location.href = '/error/500';
     return null;
+  }
+
+  //加了此参数的，不解析response，直接返回原始的
+  if (options.rawResponse === true) {
+    return response;
   }
 
   const data = await response.json();

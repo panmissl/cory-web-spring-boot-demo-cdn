@@ -10,6 +10,31 @@
 配置菜单：config/config.js
 图片放置在public文件夹下，public文件夹的文件在部署时会直接部署在和js一样的目录，所以部署后访问：比如访问public下的logo.png文件：DOMAIN/logo.png即可
 
+绑定键盘事件：https://github.com/yuanguandong/react-keyevent
+参考登录页面
+<Keyevent
+    events={{
+    onEnter: (e) => {
+        // console.log('enter key event', e, formRef)
+        formRef.current.submit();
+    },
+    }}
+    needFocusing={false}
+>
+</Keyevent>
+
+富文本编辑器：https://braft.margox.cn/
+集成到表单中
+没有外边框处理：加样式：https://github.com/margox/braft-editor/issues/564
+和 ant.design 的form 表单一起使用，数据加载不上：https://github.com/margox/braft-editor/issues/341
+编辑和展示都已经由系统封装好，只需要在后台@Field里加richText=true即可。
+但是需要上传文件时要自己传入uploadHandler参数。具体见TableList的注释。
+
+数据字典编辑器，如果类型是数据字典，只需要渲染成数据字典编辑器(用editRender来指定)，就会自动渲染成下拉列表
+DatadictEditor
+数据字典类型的编辑：字段已经通过后台的设置，然后前端已经内置实现，一般情况下不用自己处理。特殊情况另说。
+数据字典字段的展示：后台会查询关联的数据字典，前端自己写listRenderer来渲染。比如level，后台查询到存储成了levelName，前端listRenderer加：{level: (v, r) => r.levelName}
+
 本地运行：
 cnpm start
 注意：如果没有cnpm，请先安装。如果启动错误，请先cnpm install
