@@ -21,7 +21,7 @@ const DatadictEditor = props => {
   const { value, onChange, fieldMeta } = props;
 
   const [ dataSoure, setDataSource ] = useState([]);
-  const [ val, setVal ] = useState(value + "");
+  const [ val, setVal ] = useState((value === undefined || value === null) ? null : (value + ""));
 
   useEffect(() => request.get(ctx + `ajax/basedata/datadict/listByTypeValue?typeValue=${fieldMeta.datadictTypeValue}`).then(r => setDataSource(r)), []);
 

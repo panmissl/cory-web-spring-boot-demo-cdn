@@ -1,6 +1,6 @@
 import { log } from '@/utils/utils';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { Button, DatePicker, Form, Input, InputNumber, notification, Popconfirm, Radio, Select } from 'antd';
+import { DeleteOutlined, EditOutlined, DownOutlined } from '@ant-design/icons';
+import { Button, DatePicker, Form, Input, InputNumber, notification, Popconfirm, Radio, Select, Menu, Dropdown } from 'antd';
 import RichEditor, {initRichEditorValue} from '@/components/RichEditor';
 import moment from 'moment';
 import React from 'react';
@@ -21,6 +21,33 @@ const COLUMN_TYPE = {
     DATETIME: 'DATETIME',
     ENUM: 'ENUM',
     DATE: 'DATE',
+};
+
+const _renderOpColumnsAsDropDown = (opArr, record, actionRef, pageInfo) => {
+  let opIndex = 1;
+  const menu = (
+    <Menu>
+      {
+        opArr.map(op => {
+          if (op.confirm) {
+            return (
+              <Popconfirm key={opIndex ++} okText="确认" title={op.confirmText} onConfirm={() => op.handler(record, actionRef, pageInfo)}>
+                <Menu.Item icon={op.icon} danger={op.danger || false}>{op.label}</Menu.Item>
+              </Popconfirm>
+            );
+          }
+          return <Menu.Item key={opIndex ++} icon={op.icon} danger={op.danger || false} onClick={() => op.handler(record, actionRef, pageInfo)}>{op.label}</Menu.Item>;
+        })
+      }
+    </Menu>
+  );
+  return (
+    <Dropdown overlay={menu}>
+      <Button>
+        操作 <DownOutlined />
+      </Button>
+    </Dropdown>
+  );
 };
 
 /**
@@ -402,38 +429,43 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
             dataIndex: 'option',
             valueType: 'option',
             render: (_, record) => {
-                let opIndex = 1;
-                return opArr.map(op => {
-                    if (op.confirm) {
-                        return (
-                        <Popconfirm
-                            key={opIndex ++}
-                            title={op.confirmText}
-                            onConfirm={() => op.handler(record, actionRef, pageInfo)}
-                            //onCancel={cancel}
-                            okText="确认"
-                            cancelText="取消">
-                            <Button
-                                type={op.type || 'normal'} 
-                                danger={op.danger || false} 
-                                loading={op.loading || false} 
-                                icon={op.icon}>
+                //多个渲染成下拉，单个才做按钮
+                if (opArr.length > 1) {
+                    return _renderOpColumnsAsDropDown(opArr, record, actionRef, pageInfo);
+                } else {
+                    let opIndex = 1;
+                    return opArr.map(op => {
+                        if (op.confirm) {
+                            return (
+                            <Popconfirm
+                                key={opIndex ++}
+                                title={op.confirmText}
+                                onConfirm={() => op.handler(record, actionRef, pageInfo)}
+                                //onCancel={cancel}
+                                okText="确认"
+                                cancelText="取消">
+                                <Button
+                                    type={op.type || 'normal'} 
+                                    danger={op.danger || false} 
+                                    loading={op.loading || false} 
+                                    icon={op.icon}>
+                                    {op.label}
+                                </Button>
+                            </Popconfirm>
+                            );
+                        }
+                        
+                        return <Button 
+                            key={opIndex ++} 
+                            type={op.type || 'normal'} 
+                            onClick={() => op.handler(record, actionRef, pageInfo)} 
+                            danger={op.danger || false} 
+                            loading={op.loading || false} 
+                            icon={op.icon}>
                                 {op.label}
-                            </Button>
-                        </Popconfirm>
-                        );
-                    }
-                    
-                    return <Button 
-                        key={opIndex ++} 
-                        type={op.type || 'normal'} 
-                        onClick={() => op.handler(record, actionRef, pageInfo)} 
-                        danger={op.danger || false} 
-                        loading={op.loading || false} 
-                        icon={op.icon}>
-                            {op.label}
-                    </Button>
-                });
+                        </Button>
+                    });
+                }
             },
         });
     }
