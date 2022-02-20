@@ -119,7 +119,8 @@ const TableList = (props) => {
   
   const toolbar = [];
   let toolbarIndex = 1;
-  
+
+  const { updateable } = props;
   let { createable } = props;
   if (createable === undefined || createable === null) {
     createable = pageInfo.createable;
