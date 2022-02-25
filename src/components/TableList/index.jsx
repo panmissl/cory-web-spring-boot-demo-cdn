@@ -60,7 +60,7 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  * 
  * props: 
  *     model="com.cory.model.Resource" mandatory
- *     params={{sort: 'VALUE DESC'}} default null
+ *     params={{sort: 'VALUE DESC'}} default null 还可以加其它初始化固定参数，比如只查状态为init的，可以添加：status: 'init'
  *     pageSize=20 default 20
  *     ellipsisFieldList=['code', 'name'] default null 对于太长的字段，用这个来显示...并把宽度限制
  *     operationList=[{label: '', handler: fn(record, actionRef), type: 'primary | normal | dashed | text', danger: true/false, icon: xx, loading: true/false}, ...]} default null 自定义操作，可以有多个。
@@ -192,7 +192,7 @@ const TableList = (props) => {
         params={props.params || {}}
         search={pageInfo.searchEnable}
         toolBarRender={() => toolbar}
-        request={(params, sorter, filter) => doList({ url: pageInfo.listUrl, params, sorter, filter: processValues(filter, pageInfo.listColumns)})}
+        request={(params, sorter, filter) => doList({ url: pageInfo.listUrl, params: processValues(params, pageInfo.listColumns), sorter})}
         columns={pageInfo.listColumns}
       />
 

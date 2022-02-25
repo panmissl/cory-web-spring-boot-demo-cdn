@@ -9,6 +9,10 @@ const UserModel = {
   },
   effects: {
     *login({ payload }, { call, put }) {
+      yield put({
+        type: 'saveCurrentUser',
+        payload: { loginMode: false, loginError: false },
+      });
       const success = yield call(doLogin, payload);
       const currentUser = success ? yield call(queryCurrentUser) : null;
       window.USER = currentUser;

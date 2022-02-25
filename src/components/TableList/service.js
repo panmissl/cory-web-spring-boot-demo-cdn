@@ -16,15 +16,14 @@ import request from '@/utils/request';
   */
 export async function doList(payload) {
   //TODO 处理pageNo加1的情况
-  const { url, params = { current: 1, pageSize: 20 }, sorter, filter = {} } = payload;
+  const { url, params = { current: 1, pageSize: 20 }, sorter } = payload;
   const { current : pageNo, pageSize } = params;
 
-  log('url: ' + url + ', pageNo: ' + pageNo + ', pageSize: ' + pageSize + ', filter: ' + JSON.stringify(filter));
+  log('url: ' + url + ', pageNo: ' + pageNo + ', pageSize: ' + pageSize + ', params: ' + JSON.stringify(params));
 
   const pagination = await request(url, {
     data: {
       ...params,
-      ...filter,
       pageNo,
       pageSize,
     },

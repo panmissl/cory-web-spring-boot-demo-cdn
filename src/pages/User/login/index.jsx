@@ -6,6 +6,7 @@ import { connect } from 'umi';
 import styles from './index.less';
 import Keyevent from "react-keyevent";
 import Captcha from '@/components/Captcha';
+import { log } from '@/utils/utils';
 
 const LoginMessage = ({ content }) => (
   <Alert
@@ -64,17 +65,25 @@ const Login = (props) => {
   const { loginInfo = { }, submitting } = props;
   const { loginError, loginMode = false } = loginInfo;
 
+  const [captchaRefresh, setCaptchaRefresh] = useState(1);
   const [captcha, setCaptcha] = useState();
 
   const formRef = useRef();
 
   useEffect(() => {
-    // console.log('loginInfo', loginInfo);
+    log('loginInfo', loginInfo);
   
     if (window.USER) {
       loginSuccess(loginMode);
     }
   }, [loginMode]);
+
+  useEffect(() => {
+    log('loginError changed', loginError);
+    if (loginError) {
+      setCaptchaRefresh(captchaRefresh + 1);
+    }
+  }, [loginError]);
 
   const handleSubmit = (values) => {
     if (!captcha || captcha == '') {
@@ -174,7 +183,7 @@ const Login = (props) => {
           </a>
         </div>
         */}
-        <Captcha onChange={v => setCaptcha(v)} />
+        <Captcha onChange={v => setCaptcha(v)} refresh={captchaRefresh} />
       </ProForm>
     </div>
     </Keyevent>

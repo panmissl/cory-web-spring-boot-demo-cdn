@@ -101,7 +101,7 @@ const buildEnumOptions = (fieldJavaType, isValueEnum) => {
  */
 const renderColumnInput = column => {
     if (column.datadictTypeValue && column.datadictTypeValue.length > 0) {
-        return <DatadictEditor fieldMeta={column} />;
+      return <DatadictEditor fieldMeta={column} />;
     }
     if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT || column.fieldType == COLUMN_TYPE.DOUBLE) {
         return (
@@ -113,7 +113,7 @@ const renderColumnInput = column => {
             <Input placeholder={`请输入${column.title}`} />
         );
     }
-    if (column.fieldType == COLUMN_TYPE.TEXT || (column.richText)) {
+    if (column.fieldType == COLUMN_TYPE.TEXT && (column.richText === true || column.richText === 'true')) {
         return (
             <RichEditor placeholder={`请输入${column.title}`} uploadHandler={column.uploadHandler} />
         );
@@ -347,7 +347,7 @@ const parsePageInfo = ({ model, ellipsisFieldList = [], operationList = [], show
         renderText: (val, record) => {
             return field.renderName && field.renderName.length > 0 ? (record && record.renderFieldMap ? record.renderFieldMap[field.renderName] : '') : val;
         },
-        render: listRenderer[field.name] ? listRenderer[field.name] : field.richText ? (value, record) => _renderRichText(value, record, field) : null,
+        render: listRenderer[field.name] ? listRenderer[field.name] : (field.richText === true || field.richText === 'true') ? (value, record) => _renderRichText(value, record, field) : null,
     });
 
     const listColumns = fieldList.filter(f => f.showable && (hideInListFieldList).indexOf(f.name) < 0).map(field => c(field));
@@ -585,9 +585,12 @@ const processValues = (obj, columns) => {
         if (value && richText) {
             obj[key] = value.toHTML();
         }
+        if (value && value.trim) {
+          obj[key] = value.trim();
+        }
 
         //最后，移除undefined的属性
-        if (obj[key] === undefined) {
+        if (obj[key] === undefined || obj[key] === null || obj[key] === '') {
             delete obj[key];
         }
     });

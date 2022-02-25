@@ -87,7 +87,7 @@ const Page = () => {
   
   return (
     <PageContainer>
-      <TableList model="com.cory.model.User" showId={true} operationList={operationList} />
+      <TableList model="com.cory.model.User" showId={true} operationList={operationList} editRenderer={{lastLogonTime: false, lastLogonIp: false, lastLogonSuccess: false}} />
       
       {currentUser && <Modal
         width={640}

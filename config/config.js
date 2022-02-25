@@ -146,6 +146,11 @@ export default defineConfig({
                   component: './base/ActionLog',
                 },
                 {
+                  name: '访问统计',
+                  path: '/base/accesscount',
+                  component: './base/AccessCount',
+                },
+                {
                   redirect: '/error/404',
                 },
               ],
