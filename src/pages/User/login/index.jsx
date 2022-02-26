@@ -63,7 +63,7 @@ const redirect = () => {
     const arr = url.split(',');
     const map = {};
     let defaultUrl = '/';
-    for (let i=0; i<arr.length; i++) {
+    for (let i = 0; i < arr.length; i++) {
       if (arr[i].indexOf('=') >= 0) {
         const itemArr = arr[i].split('=');
         map[itemArr[0].trim()] = itemArr[1].trim();
@@ -161,7 +161,7 @@ const Login = (props) => {
           <LoginMessage content="验证码错误" />
         )*/}
           <ProFormText
-            name="logonId"
+            name="userName"
             fieldProps={{
               size: 'large',
               prefix: <UserOutlined className={styles.prefixIcon} />,

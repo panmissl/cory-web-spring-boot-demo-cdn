@@ -82,7 +82,7 @@ const BasicLayout = (props) => {
         formatMessage={null}
         {...props}
         {...settings}
-        title={currentUser ? currentUser.logonId : ''}
+        title={currentUser ? currentUser.nickName : ''}
         logo={currentUser ? currentUser.avatar : ''}
         onCollapse={handleMenuCollapse}
         onMenuHeaderClick={() => history.push('/')}

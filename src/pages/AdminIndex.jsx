@@ -26,7 +26,7 @@ const PageHeaderContent = () => {
       <div>
         <div>
           早安，
-          {window.USER.logonId}
+          {window.USER.nickName}
           ，祝你开心每一天！
         </div>
       </div>

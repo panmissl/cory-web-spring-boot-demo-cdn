@@ -102,7 +102,7 @@ const Page = () => {
         showId={true}
         operationList={operationList}
         editRenderer={{ lastLogonTime: false, lastLogonIp: false, lastLogonSuccess: false }}
-        listRenderer={{ lastLogonSuccess: (v, record) => `登录${v ? '成功' : '失败'}(${record.lastLogonTime}，${record.lastLogonIp})`}}
+        listRenderer={{ lastLogonSuccess: (v, record) => record.lastLogonTime ? `登录${v ? '成功' : '失败'}(${record.lastLogonTime}，${record.lastLogonIp})` : '还未登录过'}}
         hideInListFieldList={['thirdpartyId', 'thirdpartyType', 'extraInfo', 'lastLogonTime', 'lastLogonIp']}
       />
 
@@ -126,7 +126,7 @@ const Page = () => {
           <Radio.Group onChange={(e) => setRoleId(e.target.value)} value={roleId}>
             {roleList.map((r) => (
               <Radio style={radioStyle} value={r.id} key={r.id}>
-                {r.name}
+                {r.name} - {r.description}
               </Radio>
             ))}
           </Radio.Group>

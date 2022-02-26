@@ -51,11 +51,11 @@ const AvatarDropdown = props => {
     </Menu>
   );
 
-  return currentUser && currentUser.logonId ? (
+  return currentUser && currentUser.nickName ? (
     <HeaderDropdown overlay={menuHeaderDropdown}>
       <span className={`${styles.action} ${styles.account}`}>
         <Avatar size="small" className={styles.avatar} src={currentUser.avatar} alt="avatar" />
-        <span className={`${styles.name} anticon`}>{currentUser.logonId}</span>
+        <span className={`${styles.name} anticon`}>{currentUser.nickName}</span>
       </span>
     </HeaderDropdown>
   ) : (
