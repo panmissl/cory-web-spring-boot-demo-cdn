@@ -38,7 +38,7 @@ export default defineConfig({
       routes: [
         {
           name: '首页',
-          icon: 'dashboard',
+          icon: 'home',
           path: '/',
           component: './Index',
         },
@@ -101,9 +101,9 @@ export default defineConfig({
           routes: [
             {
               name: '首页',
-              icon: 'dashboard',
+              icon: 'home',
               path: '/admin',
-              component: './dashboard/workplace',
+              component: './AdminIndex',
             },
             {
               path: '/base',
