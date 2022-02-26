@@ -63,7 +63,7 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     params={{sort: 'VALUE DESC'}} default null 还可以加其它初始化固定参数，比如只查状态为init的，可以添加：status: 'init'
  *     pageSize=20 default 20
  *     ellipsisFieldList=['code', 'name'] default null 对于太长的字段，用这个来显示...并把宽度限制
- *     operationList=[{label: '', handler: fn(record, actionRef), type: 'primary | normal | dashed | text', danger: true/false, icon: xx, loading: true/false, confirm: true/false, confirmText: ''}, ...]} default null 自定义操作，可以有多个。
+ *     operationList=[{label: '', show: fn(record) => return true/false, handler: fn(record, actionRef), type: 'primary | normal | dashed | text', danger: true/false, icon: xx, loading: true/false, confirm: true/false, confirmText: ''}, ...]} default null 自定义操作，可以有多个。show方法定义了是否显示，比如某个状态下显示，其它状态不显示
  *     showId=true/false 是否显示ID字段，默认不显示
  *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。
  *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn。如果renderer传false，则不显示此字段，提交时也不会提交此字段
