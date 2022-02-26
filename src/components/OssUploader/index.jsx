@@ -4,15 +4,13 @@ import { useState } from 'react';
 import request from '@/utils/request';
 import {log} from '@/utils/utils';
 
-const buildFileName = file => {
-  const { uid, name, } = file;
+const parseFileExt = file => {
+  const { name } = file;
   const extIndex = name.lastIndexOf('.');
-  const time = (new Date()).getTime();
-  if (extIndex >= 0) {
-    return `${name.substr(0, extIndex) }_${uid}_${time}${name.substr(extIndex)}`;
-  } else {
-    return `${name}_${uid}_${time}`;
+  if (extIndex >= 0 && name.length > (extIndex + 1)) {
+    return name.substr(extIndex + 1);
   }
+  return "file";
 };
 
 const buildFileUrl = (host, path) => {
@@ -33,7 +31,7 @@ const buildFileUrl = (host, path) => {
  */
 const uploadToOss = async (ossType, file, callback) => {
   const policyInfo = await request(ctx + 'ajax/oss/generateUploadPolicy', {
-    data: {type: ossType, fileName: buildFileName(file) },
+    data: {type: ossType, fileExt: parseFileExt(file) },
   });
 
   log('upload policy info', policyInfo);
