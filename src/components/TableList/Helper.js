@@ -434,7 +434,7 @@ const parsePageInfo = (
         : val;
     },
     render: listRenderer[field.name]
-      ? listRenderer[field.name]
+      ? (v, r) => listRenderer[field.name](v, r)
       : field.richText === true || field.richText === 'true'
       ? (value, record) => _renderRichText(value, record, field)
       : null,
@@ -510,7 +510,12 @@ const parsePageInfo = (
     render: (_, record) => {
       let opArr = [];
       if (operationList.length > 0) {
-        opArr = opArr.concat(operationList.filter(op => op.show(record)));
+        opArr = opArr.concat(operationList.filter(op => {
+          if (!op.show) {
+            return true;
+          }
+          return op.show(record);
+        }));
       }
       if (updateable) {
         opArr.push({
