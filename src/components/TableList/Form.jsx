@@ -34,15 +34,18 @@ const EditForm = (props) => {
   const handleSave = async () => {
     const fieldsValue = processValues(await form.validateFields(), columns);
     
-    log('fieldsValue', fieldsValue);
+    log('fieldsValue', fieldsValue, columns);
 
-    //把原始的字段都带回去，因为后端不会再取了
-    const data = {...props.values, ...fieldsValue};
+    //把原始的字段都带回去，因为后端不会再取了：不能全部带过去，否则有些被删除了的字段又加回来了，除了ID字段，其它的不带，由后端框架统一处理
+    const data = {...fieldsValue};
     if (data.filterFieldMap) {
       delete data.filterFieldMap;
     }
     if (delete data.renderFieldMap) {
       delete data.renderFieldMap;
+    }
+    if (props && props.values && props.values.id) {
+      data.id = props.values.id;
     }
     onSubmit(data);
   };
