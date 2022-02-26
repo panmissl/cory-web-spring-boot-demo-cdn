@@ -143,10 +143,10 @@ const renderColumnInput = (column) => {
     column.fieldType == COLUMN_TYPE.BIGINT ||
     column.fieldType == COLUMN_TYPE.DOUBLE
   ) {
-    return <InputNumber style={{ width: '100%' }} placeholder={`请输入${column.title}`} />;
+    return <InputNumber disabled={!column.updateable} style={{ width: '100%' }} placeholder={`请输入${column.title}`} />;
   }
   if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen <= 500) {
-    return <Input placeholder={`请输入${column.title}`} />;
+    return <Input placeholder={`请输入${column.title}`} disabled={!column.updateable} />;
   }
   if (
     column.fieldType == COLUMN_TYPE.TEXT &&
@@ -160,11 +160,11 @@ const renderColumnInput = (column) => {
     column.fieldType == COLUMN_TYPE.TEXT ||
     (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 500)
   ) {
-    return <TextArea rows={4} placeholder={`请输入${column.title}`} />;
+    return <TextArea rows={4} disabled={!column.updateable} placeholder={`请输入${column.title}`} />;
   }
   if (column.fieldType == COLUMN_TYPE.BOOLEAN) {
     return (
-      <RadioGroup>
+      <RadioGroup disabled={!column.updateable}>
         <Radio value="true">是</Radio>
         <Radio value="false">否</Radio>
       </RadioGroup>
@@ -179,6 +179,7 @@ const renderColumnInput = (column) => {
         showTime={true}
         format="YYYY-MM-DD HH:mm:ss"
         placeholder="请选择"
+        disabled={!column.updateable}
       />
     );
   }
@@ -191,6 +192,7 @@ const renderColumnInput = (column) => {
         showTime={false}
         format="YYYY-MM-DD"
         placeholder="请选择"
+        disabled={!column.updateable}
       />
     );
   }
@@ -200,6 +202,7 @@ const renderColumnInput = (column) => {
         style={{
           width: '100%',
         }}
+        disabled={!column.updateable}
       >
         {buildEnumOptions(column.fieldJavaType)}
       </Select>
@@ -408,6 +411,7 @@ const parsePageInfo = (
     fieldType: field.type,
     fieldJavaType: field.javaType,
     fieldNullable: field.nullable,
+    updateable: field.updateable,
     fieldLen: field.len,
     richText: field.richText,
     datadictTypeValue: field.datadictTypeValue,
