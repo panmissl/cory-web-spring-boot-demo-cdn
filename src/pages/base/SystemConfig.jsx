@@ -21,7 +21,7 @@ const Page = () => {
   };
 
   const loadIpAndPort = async () => {
-    setIpAndPort(await request(ctx + 'ajax/basedata/ip_port'));
+    setIpAndPort(await request(ctx + 'ajax/base/systemconfig/ip_port'));
   };
 
   useEffect(() => loadIpAndPort(), []);

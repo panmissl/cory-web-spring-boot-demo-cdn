@@ -20,10 +20,7 @@ const DatadictEditor = props => {
 
   const { value, onChange, fieldMeta } = props;
 
-  const [ dataSoure, setDataSource ] = useState([]);
   const [ val, setVal ] = useState((value === undefined || value === null) ? null : (value + ""));
-
-  useEffect(() => request.get(ctx + `ajax/basedata/datadict/listByTypeValue?typeValue=${fieldMeta.datadictTypeValue}`).then(r => setDataSource(r)), []);
 
   useEffect(() => {
     let realVal = val;
@@ -40,7 +37,7 @@ const DatadictEditor = props => {
 
   return (
     <Select value={val} onChange={v => setVal(v)}>
-      {(dataSoure || []).map(item => <Option key={item.value} value={item.value}>{item.description}</Option>)}
+      {(fieldMeta.dataDictList || []).map(item => <Option key={item.value} value={item.value}>{item.description}</Option>)}
     </Select>
   );
 };

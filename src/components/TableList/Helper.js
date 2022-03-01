@@ -415,6 +415,7 @@ const parsePageInfo = (
     fieldLen: field.len,
     richText: field.richText,
     datadictTypeValue: field.datadictTypeValue,
+    dataDictList: field.dataDictList,
     uploadHandler: uploadHandler,
     customEditRenderer: editRenderer[field.name],
     customListRenderer: listRenderer[field.name],
