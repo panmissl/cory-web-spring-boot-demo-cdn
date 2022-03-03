@@ -41,6 +41,7 @@ export default defineConfig({
           icon: 'home',
           path: '/',
           component: './Index',
+          //redirect: '/admin',
         },
         {
           path: '/login',

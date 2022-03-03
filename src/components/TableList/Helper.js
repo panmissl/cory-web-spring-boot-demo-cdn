@@ -246,29 +246,35 @@ const renderColumn = (column) => {
 
   //rule START
   const rules = [];
-  if (false === column.fieldNullable) {
-    rules.push({
-      required: true,
-      message: `请${requireTip(column.fieldType)}${column.title}！`,
-    });
-  }
-  if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 0) {
-    rules.push({
-      max: column.fieldLen,
-      message: `最大长度为${column.fieldLen}！`,
-    });
-  }
-  if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT) {
-    rules.push({
-      type: 'integer',
-      message: `请输入数字！`,
-    });
-  }
-  if (column.fieldType == COLUMN_TYPE.DOUBLE) {
-    rules.push({
-      type: 'number',
-      message: `请输入数字！`,
-    });
+  if (column.customRules === false) {
+    //skip
+  } else if (column.customRules && column.customRules.length > 0) {
+    column.customRules.forEach(r => rules.push(r));
+  } else {
+    if (false === column.fieldNullable) {
+      rules.push({
+        required: true,
+        message: `请${requireTip(column.fieldType)}${column.title}！`,
+      });
+    }
+    if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 0) {
+      rules.push({
+        max: column.fieldLen,
+        message: `最大长度为${column.fieldLen}！`,
+      });
+    }
+    if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT) {
+      rules.push({
+        type: 'integer',
+        message: `请输入数字！`,
+      });
+    }
+    if (column.fieldType == COLUMN_TYPE.DOUBLE) {
+      rules.push({
+        type: 'number',
+        message: `请输入数字！`,
+      });
+    }
   }
   //rule END
 
@@ -357,7 +363,7 @@ const _renderRichText = (value, record, field) => (
  * uploadHandler 有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。一般可以用OssUploader导出的uploadToOss方法即可
  * filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  * hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
- * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, filterFieldMap = {}, hideInListFieldList, updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null }
+ * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, editLabel = {}, filterFieldMap = {}, hideInListFieldList, updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null }
  * @param {*} handleEditClick 点击编辑按钮时的处理器，参数：{visible: true, isCreate: false, record, }
  * @param {*} handleDelete 点击删除时的处理器，参数：{id, actionRef, pageInfo, }
  * @param {*} actionRef
@@ -371,11 +377,13 @@ const parsePageInfo = (
     showId = false,
     listRenderer = {},
     editRenderer = {},
+    editLabel={},
     filterFieldMap = {},
     hideInListFieldList = [],
     updateable: updateableFirst,
     deleteable: deleteableFirst,
     uploadHandler = null,
+    rule = {},
   },
   handleEditClick,
   handleDelete,
@@ -407,39 +415,44 @@ const parsePageInfo = (
   const saveUrl = baseUrl + '/save';
   const deleteUrl = baseUrl + '/delete/';
 
-  const c = (field) => ({
-    fieldType: field.type,
-    fieldJavaType: field.javaType,
-    fieldNullable: field.nullable,
-    updateable: field.updateable,
-    fieldLen: field.len,
-    richText: field.richText,
-    datadictTypeValue: field.datadictTypeValue,
-    dataDictList: field.dataDictList,
-    uploadHandler: uploadHandler,
-    customEditRenderer: editRenderer[field.name],
-    customListRenderer: listRenderer[field.name],
+  const c = (field) => {
+    const result = {
+      fieldType: field.type,
+      fieldJavaType: field.javaType,
+      fieldNullable: field.nullable,
+      updateable: field.updateable,
+      fieldLen: field.len,
+      richText: field.richText,
+      datadictTypeValue: field.datadictTypeValue,
+      dataDictList: field.dataDictList,
+      uploadHandler: uploadHandler,
+      customEditRenderer: editRenderer[field.name],
+      customListRenderer: listRenderer[field.name],
+  
+      title: field.label,
+      tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
+      dataIndex: field.name,
+      valueType: parseValueType(field.type, field.len),
+      valueEnum: parseValueEnum(field),
+      hideInSearch: !_isFilterEnable(filterFieldMap[field.name], field.filtered),
+      ellipsis: ellipsisFieldList.indexOf(field.name) >= 0,
+      customRules: rule[field.name],
+    };
 
-    title: field.label,
-    tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
-    dataIndex: field.name,
-    valueType: parseValueType(field.type, field.len),
-    valueEnum: parseValueEnum(field),
-    hideInSearch: !_isFilterEnable(filterFieldMap[field.name], field.filtered),
-    ellipsis: ellipsisFieldList.indexOf(field.name) >= 0,
-    renderText: (val, record) => {
-      return field.renderName && field.renderName.length > 0
-        ? record && record.renderFieldMap
-          ? record.renderFieldMap[field.renderName]
-          : ''
-        : val;
-    },
-    render: listRenderer[field.name]
-      ? (v, r) => listRenderer[field.name](v, r)
-      : field.richText === true || field.richText === 'true'
-      ? (value, record) => _renderRichText(value, record, field)
-      : null,
-  });
+    if (field.datadictTypeValue && field.datadictTypeValue.length > 0) {
+      result.renderFormItem = () => <DatadictEditor fieldMeta={field} />;
+    }
+
+    if (listRenderer[field.name]) {
+      result.render = (v, r) => listRenderer[field.name](v, r);
+    } else if (field.richText === true || field.richText === 'true') {
+      result.render = (value, record) => _renderRichText(value, record, field);
+    } else if (field.renderName && field.renderName.length > 0) {
+      result.render = (v, record) => record && record.renderFieldMap ? (record.renderFieldMap[field.renderName] || '') : '';
+    }
+    
+    return result;
+  };
 
   const listColumns = fieldList
     .filter((f) => f.showable && hideInListFieldList.indexOf(f.name) < 0)
@@ -503,6 +516,10 @@ const parsePageInfo = (
       hideInForm: true,
     }),
   );
+
+  if (editLabel) {
+    Object.keys(editLabel).forEach(name => editColumns.find(c => c.dataIndex === name).title = editLabel[name]);
+  }
 
   listColumns.push({
     title: '操作',
@@ -618,8 +635,9 @@ const parsePageInfo = (
   };
 
   //详情链接
-  pageInfo.listColumns[0].render = (dom, entity) => {
-    return <a onClick={() => detailHandler(entity)}>{dom}</a>;
+  const firstColumnRender = pageInfo.listColumns[0].render;
+  pageInfo.listColumns[0].render = (value, record) => {
+    return <a onClick={() => detailHandler(record)}>{firstColumnRender ? firstColumnRender(value, record) : value}</a>;
   };
 
   log('pageInfo', pageInfo);
