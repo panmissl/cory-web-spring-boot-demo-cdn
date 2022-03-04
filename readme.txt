@@ -30,6 +30,10 @@
 编辑和展示都已经由系统封装好，只需要在后台@Field里加richText=true即可。
 但是需要上传文件时要自己传入uploadHandler参数。具体见TableList的注释。
 
+代码编辑器：https://github.com/scniro/react-codemirror2
+已经集成到表单中
+编辑和展示都已经由系统封装好，只需要在后台@Field里加上code=true即可。
+
 数据字典编辑器，如果类型是数据字典，只需要渲染成数据字典编辑器(用editRender来指定)，就会自动渲染成下拉列表
 DatadictEditor
 数据字典类型的编辑：字段已经通过后台的设置，然后前端已经内置实现，一般情况下不用自己处理。特殊情况另说。

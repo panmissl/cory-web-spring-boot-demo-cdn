@@ -6,6 +6,7 @@ import { ContentUtils } from 'braft-utils';
 import { useState } from 'react';
 
 /**
+ * 一般情况下不用直接使用此组件，已经集成在TableList里了，在后台的Model里的Field里设置richText=true即可。然后只需要在TableList的使用里设置uploadHandler即可。
  * 富文本编辑器，目前用的是：BRAFT EDITOR。文档：
  * https://gitcode.net/mirrors/margox/braft-editor
  * https://www.yuque.com/braft-editor/be/lzwpnr#zrs7hr

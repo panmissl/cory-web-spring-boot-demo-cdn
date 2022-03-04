@@ -75,8 +75,9 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     updateable: 是否可修改。优先级比@Model里设置的高
  *     deleteable: 是否可删除。优先级比@Model里设置的高
  *     richText: 是否富文本编辑器。优先级比@Model里设置的高
+ *     code: 是否代码编辑器。优先级比@Model里设置的高
  *     //忽略此行：uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。参数(参见：RichEditor)：object: {file(文件体), progress(Fn(int progress)), libraryId(String), success(Fn(res))[res须为一个包含已上传文件url属性的对象], error(Fn(err))}
- *     uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。两个参数：file: 上传的文件，successCallback(url)：上传成功后，回调到系统里，系统做处理（添加到富文本里），参数是url。一般可以用OssUploader导出的uploadToOss方法即可
+ *     uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。两个参数：file: 上传的文件，successCallback(url)：上传成功后，回调到系统里，系统做处理（添加到富文本里），参数是url。一般可以用OssUploader导出的uploadToOss方法即可。用法见下面的例子
  *     formValueInitializer：可选。form表单值初始化处理。比如要添加一些字段或者处理一些初始化值。是一个函数，接收初始化数据，返回处理过的初始化数据: Fn(initValues) => processedInitValues。一般要配合editRenderer使用，把某个字段重新赋值后重新渲染，然后提交时再处理回来
  *     formValuePostProcessor：可选。form表单提交前处理器。比如在提交前对一些值进行处理或转换。是一个函数，接收要提交的数据，返回处理过的提交数据: Fn(submitValues) => processedSubmitValues。一般要配合editRenderer使用，把某个字段重新赋值后重新渲染，然后提交时再处理回来
  *     rule: 可选。表单校验规则: {column1: [rule1, rule2], column2: [rule3, rule4]}，优先级比@Field 里设置的高，如果设置为false则不校验。规则就是校验的规则，参考antd文档
@@ -114,7 +115,26 @@ const handleDelete = async (id, actionRef, pageInfo) => {
     loading: uploadLoading,
   }];
 
-  级联菜单：使用级联菜单比较麻烦，要结合formValueInitializer、formValuePostProcessor、rule、editLabel、editRenderer，以及antd的级联菜单组件Cascader一起使用。
+  uploadHandler用法举例：
+  1、先引入uploadToOss：
+  import { uploadToOss } from '@/components/OssUploader';
+  2、在TableList里传入uploadHandler：
+  <TableList 
+    model="com.cory.model.XXX" 
+    showId={false} 
+    uploadHandler={(file, callback) => {
+      uploadToOss(OSS_TYPE_XXX, file, (success, url) => {
+        //上传成功，回调一下，不成功忽略
+        if (success) {
+          callback(url);
+        }
+      });
+    }}
+  />
+
+
+  级联菜单：
+  使用级联菜单比较麻烦，要结合formValueInitializer、formValuePostProcessor、rule、editLabel、editRenderer，以及antd的级联菜单组件Cascader一起使用。
   举例：现在有两个字段：一级菜单ID(level1CategoryId)、二级菜单ID(level2CategoryId)，要用级联菜单的方式选择一级菜单后，再动态加载二级菜单数据，然后选择。同时编辑时要填充两菜菜单的初始数据。
   原理：编辑表单不显示二级菜单ID，同时把一级菜单ID自定义渲染，然后在提交时将数据写回去一级菜单ID和二级菜单ID
 

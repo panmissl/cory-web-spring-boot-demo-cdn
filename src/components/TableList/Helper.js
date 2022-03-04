@@ -14,6 +14,7 @@ import {
   Dropdown,
 } from 'antd';
 import RichEditor, { initRichEditorValue } from '@/components/RichEditor';
+import CodeEditor from '@/components/CodeEditor';
 import moment from 'moment';
 import React from 'react';
 import DatadictEditor from '@/components/form/DatadictEditor';
@@ -132,11 +133,14 @@ const buildEnumOptions = (fieldJavaType, isValueEnum) => {
 
 /**
  * 根据字段类型返回字段输入框。比如文本返回输入框，枚举返回下拉框
- * @param {*} column 字段定义：{ filedType, title, fieldLen, fieldJavaType, richText, uploadHandler(richText为true时需要) }
+ * @param {*} column 字段定义：{ filedType, title, fieldLen, fieldJavaType, richText, uploadHandler(richText为true时需要), code }
  */
 const renderColumnInput = (column) => {
   if (column.datadictTypeValue && column.datadictTypeValue.length > 0) {
     return <DatadictEditor fieldMeta={column} />;
+  }
+  if (column.code === true || column.code === 'true') {
+    return <CodeEditor fieldMeta={column} />;
   }
   if (
     column.fieldType == COLUMN_TYPE.INT ||
@@ -226,6 +230,7 @@ const renderColumn = (column) => {
     fieldNullable: field.nullable,
     fieldLen: field.len,
     richText: field.richText,
+    code: field.code,
     datadictTypeValue: field.datadictTypeValue,
     uploadHandler: field.uploadHandler,//richText为true时需要
 
@@ -359,6 +364,10 @@ const _renderRichText = (value, record, field) => (
   <div dangerouslySetInnerHTML={{ __html: value }} style={{ display: 'inline-block' }} />
 );
 
+const _renderCode = (value, record, field) => (
+  <div dangerouslySetInnerHTML={{ __html: value }} style={{ display: 'inline-block' }} />
+);
+
 /**
  * uploadHandler 有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。一般可以用OssUploader导出的uploadToOss方法即可
  * filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
@@ -423,6 +432,7 @@ const parsePageInfo = (
       updateable: field.updateable,
       fieldLen: field.len,
       richText: field.richText,
+      code: field.code,
       datadictTypeValue: field.datadictTypeValue,
       dataDictList: field.dataDictList,
       uploadHandler: uploadHandler,
@@ -445,6 +455,8 @@ const parsePageInfo = (
 
     if (listRenderer[field.name]) {
       result.render = (v, r) => listRenderer[field.name](v, r);
+    } else if (field.code === true || field.code === 'true') {
+      result.render = (value, record) => _renderCode(value, record, field);
     } else if (field.richText === true || field.richText === 'true') {
       result.render = (value, record) => _renderRichText(value, record, field);
     } else if (field.renderName && field.renderName.length > 0) {
