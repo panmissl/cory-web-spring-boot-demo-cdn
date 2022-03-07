@@ -212,6 +212,7 @@ const renderColumnInput = (column) => {
       </Select>
     );
   }
+  log('不支持的类型', column);
   notification.error({
     message: '错误',
     description: `不支持的类型：${column.fieldType}`,
@@ -372,7 +373,7 @@ const _renderCode = (value, record, field) => (
  * uploadHandler 有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。一般可以用OssUploader导出的uploadToOss方法即可
  * filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  * hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
- * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, editLabel = {}, filterFieldMap = {}, hideInListFieldList, updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null }
+ * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, editLabel = {}, filterFieldMap = {}, hideInListFieldList, updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null, extraListRenderer = {}, extraEditRenderer = {} }
  * @param {*} handleEditClick 点击编辑按钮时的处理器，参数：{visible: true, isCreate: false, record, }
  * @param {*} handleDelete 点击删除时的处理器，参数：{id, actionRef, pageInfo, }
  * @param {*} actionRef
@@ -393,6 +394,8 @@ const parsePageInfo = (
     deleteable: deleteableFirst,
     uploadHandler = null,
     rule = {},
+    extraListRenderer = {},
+    extraEditRenderer = {},
   },
   handleEditClick,
   handleDelete,
@@ -629,6 +632,47 @@ const parsePageInfo = (
       renderName: 'modifyTimeText',
     }),
   );
+
+  Object.keys(extraListRenderer).forEach(extra => {
+    const extranColumnDefine = extraListRenderer[extra];
+    const extraColumn = c({
+      type: 'VARCHAR',
+      javaType: 'String',
+      nullable: true,
+      updateable: true,
+      len: 1024,
+      richText: false,
+      code: false,
+      label: extranColumnDefine.label,
+      desc: extranColumnDefine.desc,
+      name: extra,
+      valueType: 'text',
+      filtered: false,
+    });
+    if (hideInListFieldList.indexOf(extra) < 0) {
+      listColumns.splice(extranColumnDefine.position || -1, 0, extraColumn);
+    }
+    detailColumns.splice(extranColumnDefine.position || -1, 0, extraColumn);
+  });
+
+  Object.keys(extraEditRenderer).forEach(extra => {
+    const extranColumnDefine = extraEditRenderer[extra];
+    const extraColumn = c({
+      type: 'VARCHAR',
+      javaType: 'String',
+      nullable: true,
+      updateable: true,
+      len: 1024,
+      richText: false,
+      code: false,
+      label: extranColumnDefine.label,
+      desc: extranColumnDefine.desc,
+      name: extra,
+      valueType: 'text',
+      filtered: false,
+    });
+    editColumns.splice(extranColumnDefine.position || -1, 0, extraColumn);
+  });
 
   const pageInfo = {
     name,

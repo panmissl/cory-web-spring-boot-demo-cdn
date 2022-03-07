@@ -1,5 +1,5 @@
 import { useEffect, useState, Fragment } from 'react';
-import { Image, Button, Popconfirm } from 'antd';
+import { Image, Button, Popconfirm, Input } from 'antd';
 import OssUploader from '@/components/OssUploader';
 import { log } from '@/utils/utils';
 import {
@@ -9,6 +9,7 @@ import {
 /**
  * 单个图片上传编辑器，比如logo图等。会展示上传按钮，上传后显示图片。
  * 上传会传到OSS，使用OssUploader来上传
+ * 支持使用网络图片
  * 
  * 用法：<SingleImageUploadInput ossType='xxx' fieldMeta={field} />
  * 
@@ -50,7 +51,10 @@ const SingleImageUploadInput = props => {
 
   return (
     <Fragment>
-      <OssUploader ossType={ossType} success={url => setImageUrl(url)} />
+      <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center'}}>
+        <OssUploader ossType={ossType} success={url => setImageUrl(url)} />
+        <Input style={{marginLeft: '8px'}} value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="可以直接指定网络图片" />
+      </div>
 
       {imageUrl && (
         <Popconfirm

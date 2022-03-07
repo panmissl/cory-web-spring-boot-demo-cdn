@@ -1,9 +1,9 @@
-import { message, Upload } from 'antd';
-import { PictureFilled } from '@ant-design/icons';
+import { message, Upload, Modal, Input } from 'antd';
+import { PictureFilled, UploadOutlined } from '@ant-design/icons';
 import BraftEditor from 'braft-editor';
 import 'braft-editor/dist/index.css';
 import { ContentUtils } from 'braft-utils';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 /**
  * 一般情况下不用直接使用此组件，已经集成在TableList里了，在后台的Model里的Field里设置richText=true即可。然后只需要在TableList的使用里设置uploadHandler即可。
@@ -27,6 +27,8 @@ const RichEditor = props => {
   }
 
   const [ html, setHtml ] = useState(newProps.value);
+  const [ showInternetImageModal, setShowInternetImageModal ] = useState(false);
+  const [ internetImageUrl, setInternetImageUrl ] = useState();
   delete newProps.value;
 
   let superOnChange = false;
@@ -95,7 +97,7 @@ const RichEditor = props => {
 
   const controls = [
     //'undo', 'redo', 'separator',
-    'font-size', 'line-height', 'letter-spacing', 'separator',
+    'fullscreen', 'font-size', 'line-height', 'letter-spacing', 'separator',
     'text-color', 'bold', 'italic', 'underline', 'strike-through', 'hr', 'separator',
     //'superscript', 'subscript', 'remove-styles', 'emoji',  'separator', 
     'text-indent', 'text-align', 'separator',
@@ -105,6 +107,14 @@ const RichEditor = props => {
     //'clear'
   ];
   const extendControls = [{
+    key: 'internet-image',
+    type: 'component',
+    component: (
+      <button type="button" className="control-item button upload-button" data-title="插入网络图片" onClick={() => setShowInternetImageModal(true)}>
+        <PictureFilled style={{fontSize: '16px'}} />
+      </button>
+    )
+  }, {
     key: 'antd-uploader',
     type: 'component',
     component: (
@@ -115,8 +125,8 @@ const RichEditor = props => {
       >
         {/*<Button type='default' icon={<PictureFilled />}>插入图片</Button>*/}
         {/* 这里的按钮最好加上type="button"，以避免在表单容器中触发表单提交，用Antd的Button组件则无需如此 */}
-        <button type="button" className="control-item button upload-button" data-title="插入图片">
-          <PictureFilled style={{fontSize: '16px'}} />
+        <button type="button" className="control-item button upload-button" data-title="上传本地图片到OSS然后使用">
+          <UploadOutlined style={{fontSize: '16px'}} />
         </button>
       </Upload>
     )
@@ -127,7 +137,30 @@ const RichEditor = props => {
     <BraftEditor {...newProps} className={className} media={media} controls extendControls />
   );
   */
-  return <BraftEditor {...newProps} className={className} controls={controls} extendControls={extendControls} value={html} onChange={htmlChange} />;
+  return (
+    <Fragment>
+      <BraftEditor {...newProps} className={className} controls={controls} extendControls={extendControls} value={html} onChange={htmlChange} />
+      <Modal title={false} visible={showInternetImageModal} closable={false} onOk={() => {
+        if (internetImageUrl && internetImageUrl.length > 0) {
+          if (html) {
+            setHtml(ContentUtils.insertMedias(html, [{
+              type: 'IMAGE',
+              url: internetImageUrl,
+            }]));
+          } else {
+            message.error('请将光标定位在编辑器内');
+          }
+        }
+        setShowInternetImageModal(false);
+        setInternetImageUrl(null);
+      }} onCancel={() => {
+        setShowInternetImageModal(false);
+        setInternetImageUrl(null);
+      }}>
+        <Input value={internetImageUrl} onChange={e => setInternetImageUrl(e.target.value)} placeholder= "请输入网络图片URL" />
+      </Modal>
+    </Fragment>
+  );
 };
 
 export default RichEditor;

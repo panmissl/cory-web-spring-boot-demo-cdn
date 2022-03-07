@@ -2,7 +2,7 @@ import { log } from '@/utils/utils';
 import { PlusOutlined } from '@ant-design/icons';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import ProTable from '@ant-design/pro-table';
-import { Button, Drawer, message, Upload, Tooltip } from 'antd';
+import { Button, Drawer, message, Upload, Tooltip, Popconfirm } from 'antd';
 import React, { Fragment, useMemo, useRef, useState } from 'react';
 import { parsePageInfo, processValues } from './Helper';
 import { doDelete, doList, doSave } from './service';
@@ -57,6 +57,8 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  * https://pro.ant.design/index-cn
  * 
  * actionRef的方法：actionRef.current.reload(), actionRef.current.reset()
+ * 字段顺序通过在Model类里声明的顺序确定，所以想要显示在前面的就把字段往前放
+ * 最后面有完整的例子
  * 
  * props: 
  *     model="com.cory.model.Resource" mandatory
@@ -65,12 +67,12 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     ellipsisFieldList=['code', 'name'] default null 对于太长的字段，用这个来显示...并把宽度限制
  *     operationList=[{label: '', show: fn(record) => return true/false, handler: fn(record, actionRef), type: 'primary | normal | dashed | text', danger: true/false, icon: xx, loading: true/false, confirm: true/false, confirmText: ''}, ...]} default null 自定义操作，可以有多个。show方法定义了是否显示，比如某个状态下显示，其它状态不显示
  *     showId=true/false 是否显示ID字段，默认不显示
- *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。
- *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn。如果renderer传false，则不显示此字段，提交时也不会提交此字段
+ *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。注意：如果有额外的字段需要显示，也可以定义在这里，使用场景举例：Article(文章)和Tag(标签)有关联关系，但Article字段定义里没有tag，是通过关联查询到的，此时要想在列表详情里显示tag，可以在Article加一个字段（不带Field注解），查询后在前端显示。此时就可以用到此属性进行渲染。
+ *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn。如果renderer传false，则不显示此字段，提交时也不会提交此字段。注意：如果有额外的字段需要提交，也可以使用，使用场景举例：Article(文章)和Tag(标签)有关联关系，但Article字段定义里没有tag，保存文章时需要将tag也保存，此时就可以声明一个tags的columnRenderer来实现，但此时renderer没有参数，不像普通字段那样会有一个column的参数。
  *     editLabel: {column1: label1, column2: label2}。可选。设置表单的label
  *     filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  *     hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
- *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, tooltip: String(可选), upload: true/false, uploadProps: {}}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
+ *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, tooltip: String(可选), confirm: true/false, confirmText: '', upload: true/false, uploadProps: {}}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表。文件上传时忽略confirm和cofirmText
  *     createable: 是否可新建。优先级比@Model里设置的高
  *     updateable: 是否可修改。优先级比@Model里设置的高
  *     deleteable: 是否可删除。优先级比@Model里设置的高
@@ -81,6 +83,8 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     formValueInitializer：可选。form表单值初始化处理。比如要添加一些字段或者处理一些初始化值。是一个函数，接收初始化数据，返回处理过的初始化数据: Fn(initValues) => processedInitValues。一般要配合editRenderer使用，把某个字段重新赋值后重新渲染，然后提交时再处理回来
  *     formValuePostProcessor：可选。form表单提交前处理器。比如在提交前对一些值进行处理或转换。是一个函数，接收要提交的数据，返回处理过的提交数据: Fn(submitValues) => processedSubmitValues。一般要配合editRenderer使用，把某个字段重新赋值后重新渲染，然后提交时再处理回来
  *     rule: 可选。表单校验规则: {column1: [rule1, rule2], column2: [rule3, rule4]}，优先级比@Field 里设置的高，如果设置为false则不校验。规则就是校验的规则，参考antd文档
+ *     extraListRenderer: {column1: {position: 0(不传默认-1，加在最后), label: '', desc: '可选'}, column2: ...} 和listRenderer配合使用，在listRenderer里定义渲染逻辑。如果有额外的字段需要显示，定义在这里，position是显示的顺序位置，是>=0的数字，使用场景举例：Article(文章)和Tag(标签)有关联关系，但Article字段定义里没有tag，是通过关联查询到的，此时要想在列表详情里显示tag，可以在Article加一个字段（不带Field注解），查询后在前端显示。此时就可以用到此属性进行渲染。举例：extraListRenderer={{'tagList': {label: '标签'}}}
+ *     extraEditRenderer: {column1: {position: 0(不传默认-1，加在最后), label: '', desc: '可选'}, column2: ...} 和editRenderer配合使用，在editRenderer里定义渲染逻辑。如果有额外的字段需要提交，定义在这里，position是显示的顺序位置，是>=0的数字，使用场景举例：Article(文章)和Tag(标签)有关联关系，但Article字段定义里没有tag，保存文章时需要将tag也保存，此时就可以声明一个tags的columnRenderer来实现，但此时renderer没有参数，不像普通字段那样会有一个column的参数。只需要注意使用value和改变时调用onChange即可。举例：extraEditRenderer={{'tags': {label: '标签', position: 7, desc: '多个标签用逗号或空格分隔'}}}
  * 
  * toolbar上传例子：注意onChange里成功后的刷新
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -113,6 +117,8 @@ const handleDelete = async (id, actionRef, pageInfo) => {
     upload: true,
     uploadProps,
     loading: uploadLoading,
+    confirm: true,
+    confirmText: 'confirm?',
   }];
 
   uploadHandler用法举例：
@@ -228,6 +234,45 @@ const handleDelete = async (id, actionRef, pageInfo) => {
     editLabel={{level1CategoryId: '分类'}}
     rule={{level1CategoryId: [{ required: true, message: '请选择分类！', }]}}
   />
+
+  完成例子：
+  <TableList 
+    model="com.cory.model.Article" 
+    showId={false} 
+    formValueInitializer={values => processInitValues(values)}
+    formValuePostProcessor={values => processSubmitValues(values)}
+    editRenderer={{
+      level1CategoryId: () => <CategoryEditor />, 
+      logo: (column) => <SingleImageUploadInput ossType='ARTICLE_LOGO' fieldMeta={column} />,
+      level2CategoryId: false, 
+      code: false, 
+      viewCount: false, 
+      hot: false, 
+      isIndexed: false,
+      tags: () => <TagEditor />,
+    }}
+    listRenderer={{
+      code: v => <Tooltip title={v}>{v.substr(0, 8)}</Tooltip>, 
+      level1CategoryId: (v, r) => r.l1Category ? r.l1Category.name : '无', 
+      level2CategoryId: (v, r) => r.l2Category ? r.l2Category.name : '无',
+      logo: v => v ? <Image src={v} width={100} /> : '无',
+      codeContent: v => <CodeEditor value={v} mode="VIEW" />,
+      tagList: v => v ? (v.join ? v.join(',') : v) : '无',
+    }}
+    hideInListFieldList={['link', 'logo', 'description', 'content', 'codeContent', 'tagList']}
+    editLabel={{level1CategoryId: '分类'}}
+    rule={{level1CategoryId: [{ required: true, message: '请选择分类！', }]}}
+    uploadHandler={(file, callback) => {
+      uploadToOss('ARTICLE_IMAGE', file, (success, url) => {
+        //上传成功，回调一下，不成功忽略
+        if (success) {
+          callback(url);
+        }
+      });
+    }}
+    extraListRenderer={{'tagList': {label: '标签'}}}
+    extraEditRenderer={{'tags': {label: '标签', position: 7, desc: '多个标签用逗号或空格分隔'}}}
+  />
  */
 const TableList = (props) => {
   const [editModal, setEditModal] = useState({ visible: false, isCreate: false, record: null });
@@ -296,32 +341,44 @@ const TableList = (props) => {
           </Upload>,
         );
       } else {
-        toolbar.push(
-          button.tooltip ? (
-            <Tooltip title={button.tooltip}>
-              <Button
-                key={toolbarIndex++}
-                type={button.type}
-                onClick={() => button.handler(actionRef)}
-                danger={button.danger || false}
-                loading={button.loading || false}
-                icon={button.icon}
-              >
-                {button.label}
-              </Button>
-            </Tooltip>
-          ) : (
+        const clickHandler = button.confirm === true ? () => {} : () => button.handler(actionRef);
+        const node = button.tooltip ? (
+          <Tooltip title={button.tooltip}>
             <Button
               key={toolbarIndex++}
               type={button.type}
-              onClick={() => button.handler(actionRef)}
+              onClick={clickHandler}
               danger={button.danger || false}
               loading={button.loading || false}
               icon={button.icon}
             >
               {button.label}
             </Button>
-          ),
+          </Tooltip>
+        ) : (
+          <Button
+            key={toolbarIndex++}
+            type={button.type}
+            onClick={clickHandler}
+            danger={button.danger || false}
+            loading={button.loading || false}
+            icon={button.icon}
+          >
+            {button.label}
+          </Button>
+        );
+
+        toolbar.push(
+          button.confirm === true ? (
+            <Popconfirm
+              title={button.confirmText || '确认?'}
+              onConfirm={() => button.handler(actionRef)}
+              okText="确认"
+              cancelText="取消"
+            >
+              {node}
+            </Popconfirm>
+          ) : node
         );
       }
     });
