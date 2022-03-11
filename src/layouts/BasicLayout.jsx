@@ -13,6 +13,7 @@ import { getMatchMenu } from '@umijs/route-utils';
 import { Button, Result } from 'antd';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { connect, history, Link } from 'umi';
+import PageTab from './PageTab';
 
 const noMatch = (
   <Result
@@ -121,7 +122,7 @@ const BasicLayout = (props) => {
         }}
       >
         <Authorized authority={authorized.authority} noMatch={noMatch}>
-          {children}
+          <PageTab>{children}</PageTab>
         </Authorized>
       </ProLayout>
       <SettingDrawer
