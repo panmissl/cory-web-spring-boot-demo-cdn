@@ -70,6 +70,7 @@ const EditForm = (props) => {
       visible={editModalVisible}
       footer={renderFooter()}
       onCancel={() => onCancel()}
+      keyboard={false}
     >
       <Form
         {...formLayout}
