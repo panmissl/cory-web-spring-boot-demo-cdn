@@ -97,14 +97,15 @@ const RichEditor = props => {
 
   const controls = [
     //'undo', 'redo', 'separator',
-    'fullscreen', 'font-size', 'line-height', 'letter-spacing', 'separator',
+    'fullscreen', 'headings', 'font-size', 'line-height', 'letter-spacing', 'separator',
     'text-color', 'bold', 'italic', 'underline', 'strike-through', 'hr', 'separator',
     //'superscript', 'subscript', 'remove-styles', 'emoji',  'separator', 
     'text-indent', 'text-align', 'separator',
     //'headings', 'list-ul', 'list-ol', 'blockquote', 'code', 'separator',
-    'headings', 'list-ul', 'list-ol', 'blockquote', 'link', 'separator',
+    'list-ul', 'list-ol', 'blockquote', 'link', 'separator',
     //'media', 'separator',
     //'clear'
+    'code',
   ];
   const extendControls = [{
     key: 'internet-image',
