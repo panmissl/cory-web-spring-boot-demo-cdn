@@ -1,13 +1,12 @@
 import TableList from '@/components/TableList';
 import { PageContainer } from '@ant-design/pro-layout';
 import { ReloadOutlined } from '@ant-design/icons';
-import React, { useState, useEffect } from 'react';
-import { message, Alert } from 'antd';
+import React, { useState } from 'react';
+import { message } from 'antd';
 import request from '@/utils/request';
 
 const Page = () => {
   const [ loading, setLoading ] = useState(false);
-  const [ ipAndPort, setIpAndPort ] = useState();
   
   const refreshCache =  async () => {
     setLoading(true);
@@ -20,15 +19,8 @@ const Page = () => {
     }
   };
 
-  const loadIpAndPort = async () => {
-    setIpAndPort(await request(ctx + 'ajax/base/systemconfig/ip_port'));
-  };
-
-  useEffect(() => loadIpAndPort(), []);
-
   return (
     <PageContainer>
-      <Alert style={{marginBottom: '10px'}} showIcon message={`本机IP及端口：${ipAndPort || '加载中...'}`} type="info" />
       <TableList 
         model="com.cory.model.SystemConfig" 
         ellipsisFieldList={['val']} 

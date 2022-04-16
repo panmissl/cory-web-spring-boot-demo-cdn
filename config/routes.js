@@ -79,6 +79,16 @@ export default [
             icon: 'setting',
             routes: [
               {
+                name: '集群管理',
+                path: '/base/cluster',
+                component: './base/Cluster',
+              },
+              {
+                name: '集群任务',
+                path: '/base/clusterjob',
+                component: './base/ClusterJob',
+              },
+              {
                 name: '系统配置',
                 path: '/base/systemconfig',
                 component: './base/SystemConfig',
