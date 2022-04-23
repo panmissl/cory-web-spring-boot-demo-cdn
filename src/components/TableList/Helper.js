@@ -542,6 +542,9 @@ const parsePageInfo = (
       }
 
       //多个渲染成下拉，单个才做按钮
+      if (opArr.length === 0) {
+        return '无';
+      }
       if (opArr.length > 1) {
         return _renderOpColumnsAsDropDown(opArr, record, actionRef, pageInfo);
       } else {
