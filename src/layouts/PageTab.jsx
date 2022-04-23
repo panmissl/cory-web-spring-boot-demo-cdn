@@ -1,7 +1,7 @@
-import { Tabs, Menu, Dropdown } from 'antd';
+import { Tabs, Menu, Dropdown, Button, Popconfirm } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { history } from 'umi';
-import { CloseCircleOutlined } from '@ant-design/icons';
+import { connect, history } from 'umi';
+import { CloseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import routes from '../../config/routes';
 import { log } from '@/utils/utils';
 
@@ -112,6 +112,15 @@ const PageTab = props => {
     setActiveKey(newKey);
   };
 
+  const doLogout = () => {
+    const { dispatch } = props;
+    if (dispatch) {
+      dispatch({
+        type: 'user/logout',
+      });
+    }
+  };
+
   return (
     <Tabs 
       hideAdd 
@@ -124,6 +133,7 @@ const PageTab = props => {
         }
         history.push(key);
       }}
+      tabBarExtraContent={<Popconfirm okText="退出" title='确认退出登录?' onConfirm={() => doLogout()}><Button type='normal' icon={<PoweroffOutlined />} danger>退出登录</Button></Popconfirm>}
     >
       {(pages || []).map(pane => {
         return (
@@ -140,4 +150,4 @@ const PageTab = props => {
   );
 };
 
-export default PageTab;
+export default connect()(PageTab);
