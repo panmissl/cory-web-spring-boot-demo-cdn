@@ -71,6 +71,8 @@ const EditForm = (props) => {
       footer={renderFooter()}
       onCancel={() => onCancel()}
       keyboard={false}
+      closable={false} 
+      maskClosable={false}
     >
       <Form
         {...formLayout}
