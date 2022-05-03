@@ -9,6 +9,7 @@ const { Option } = Select;
  * 数据字典编辑器
  * 
  * 用法：<DatadictEditor fieldMeta={column} />
+ * fieldMeta的值用utils里的getDatadictFieldMeta
  */
 const DatadictEditor = props => {
 

@@ -1,4 +1,4 @@
-import { log } from '@/utils/utils';
+import { log, getEnumDataSource } from '@/utils/utils';
 import { DeleteOutlined, EditOutlined, DownOutlined } from '@ant-design/icons';
 import {
   Button,
@@ -97,25 +97,7 @@ const requireTip = (type) => {
  * @param {*} fieldJavaType 字段Java类型，比如：java.lang.String, java.lang.Integer等
  */
 const buildEnumOptions = (fieldJavaType, isValueEnum) => {
-  const enumMetaSet = window.USER.enumMetaSet;
-  if (!enumMetaSet || enumMetaSet.length == 0) {
-    return null;
-  }
-  const enumMeta = enumMetaSet.find((e) => e.className == fieldJavaType);
-  if (!enumMeta) {
-    return null;
-  }
-  const valueLabelOrderMap = enumMeta.valueLabelOrderMap;
-  if (!valueLabelOrderMap) {
-    return null;
-  }
-  let arr = Object.keys(valueLabelOrderMap).map((value) => {
-    const labelOrder = valueLabelOrderMap[value];
-    const label = Object.keys(labelOrder)[0];
-    const order = labelOrder[label];
-    return { label, value, order };
-  });
-  arr = arr.sort((i1, i2) => i1.order - i2.order);
+  const arr = getEnumDataSource(fieldJavaType);
   log('arr', arr);
 
   if (isValueEnum) {
@@ -431,7 +413,7 @@ const parsePageInfo = (
     };
 
     if (field.datadictTypeValue && field.datadictTypeValue.length > 0) {
-      result.renderFormItem = () => <DatadictEditor fieldMeta={field} />;
+      result.renderFormItem = () => <DatadictEditor fieldMeta={{...field, fieldType: field.type}} />;
     }
 
     if (listRenderer[field.name]) {

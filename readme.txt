@@ -7,7 +7,7 @@
 
 列表+详情+新增+编辑+删除：TableList
 
-配置菜单：config/config.js
+配置菜单：config/routes.js
 图片放置在public文件夹下，public文件夹的文件在部署时会直接部署在和js一样的目录，所以部署后访问：比如访问public下的logo.png文件：DOMAIN/logo.png即可
 
 绑定键盘事件：https://github.com/yuanguandong/react-keyevent
@@ -30,14 +30,108 @@
 编辑和展示都已经由系统封装好，只需要在后台@Field里加richText=true即可。
 但是需要上传文件时要自己传入uploadHandler参数。具体见TableList的注释。
 
-代码编辑器：https://github.com/scniro/react-codemirror2
-已经集成到表单中
-编辑和展示都已经由系统封装好，只需要在后台@Field里加上code=true即可。
-
-数据字典编辑器，如果类型是数据字典，只需要渲染成数据字典编辑器(用editRender来指定)，就会自动渲染成下拉列表
-DatadictEditor
+数据字典编辑器，如果类型是数据字典，只需要渲染成数据字典编辑器(用editRenderer来指定)，就会自动渲染成下拉列表
+  DatadictEditor
 数据字典类型的编辑：字段已经通过后台的设置，然后前端已经内置实现，一般情况下不用自己处理。特殊情况另说。
 数据字典字段的展示：后台会查询关联的数据字典，前端自己写listRenderer来渲染。比如level，后台查询到存储成了levelName，前端listRenderer加：{level: (v, r) => r.levelName}
+
+自定义表单：
+  使用场景，在列表页面，需要做某些数据修改，比如有一个微信用户列表，要修改用户角色和手机号，此时需要一个弹出框，然后下拉选择角色，并输入一下电话号，然后保存。
+  其中角色是后端定义好的枚举，在前端需要渲染成下拉选择。
+  此时可以自己定义表单来输入。注意的点： 
+    #、枚举：直接使用utils里的getEnumDataSource方法获取到枚举数据源。具体见方法注释
+    #、form的layout已经在utils里定义了一个默认的，可以直接用，如果不够用可以自行定义
+    #、数据字典也是要渲染成下拉选择，见上面的数据字典描述
+    #、还可以根据条件动态渲染某些字段，比如需要角色A才输入电话号，其它角色不用输入
+  具体例子如下：
+    /******************* 自定义表单示例开始 **********************/
+    import { log, getEnumDataSource, layout, tailLayout } from '@/utils/utils';
+    //其它import请自行引入
+
+    const Page = () => {
+      const [ user, setUser ] = useState();
+      const [ actionRef, setActionRef ] = useState();
+      const [ roleModalVisible, setRoleModalVisible ] = useState(false);
+      const [ roleFormInitialValues, setRoleFormInitialValues ] = useState(null);
+
+      const startChangeRole = (record, actionRef) => {
+        setUser(record);
+        setActionRef(actionRef);
+
+        request.get(ctx + 'ajax/xxx/xxx/getByOpenid', {data: {openid: record.openid}}).then(u => {
+          const initValues = {
+            role: record.role,
+            name: u.name,
+            phone: u.phone,
+          };
+          log('init values', initValues);
+          setRoleFormInitialValues(initValues);
+          setRoleModalVisible(true);
+        });
+      }
+
+      const submitChangeRole = (values) => {
+        log(values);
+        request.post(ctx + 'ajax/xxx/xxx/changeRole', {data: {...values, id: user.id}}).then(success => {
+          if (success) {
+            message.success('角色修改成功');
+            actionRef.current.reload();
+            cancelChangeRole();
+          } else {
+            message.error('角色修改失败');
+          }
+        });
+      };
+
+      const cancelChangeRole = () => {
+        setUser(null);
+        setRoleModalVisible(false);
+        setRoleFormInitialValues(null);
+      };
+
+      return (
+        <PageContainer>
+          <TableList 
+            model="com.cory.model.WxUser" 
+            showId={true} 
+            operationList={[{label: '修改角色', handler: (record, actionRef) => startChangeRole(record, actionRef), icon: <UserSwitchOutlined />}]}
+          />
+
+          <Modal title="修改角色" visible={roleModalVisible} footer={null} closable={false} maskClosable={false}>
+            <Form {...layout} onFinish={submitChangeRole} initialValues={roleFormInitialValues}>
+              <Form.Item name="role" label="角色" rules={[{required: true}]}>
+                <Select placeholder="请选择角色">
+                  {getEnumDataSource('WxUserRole').map(e => <Option key={e.value} value={e.value}>{e.label}</Option>)}
+                </Select>
+              </Form.Item>
+              <Form.Item name="name" label="姓名" rules={[{required: true}]}>
+                <Input placeholder='请输入姓名' />
+              </Form.Item>
+              <Form.Item noStyle shouldUpdate>
+                {({ getFieldValue }) =>
+                  (getFieldValue('role') === 'A') ? (
+                    <Form.Item name="phone" label="电话" rules={[{required: true}]}>
+                      <Input placeholder='请输入电话' />
+                    </Form.Item>
+                  ) : null
+                }
+              </Form.Item>
+              <Form.Item {...tailLayout}>
+                <Button type="primary" htmlType="submit">
+                  保存
+                </Button>
+                <Button type="normal" onClick={cancelChangeRole} className="margin-left-8">
+                  取消
+                </Button>
+              </Form.Item>
+            </Form>
+          </Modal>
+        </PageContainer>
+      );
+    };
+
+    export default Page;
+    /******************* 自定义表单示例结束 **********************/
 
 本地运行：
 cnpm start

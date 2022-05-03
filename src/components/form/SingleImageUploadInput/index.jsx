@@ -11,11 +11,10 @@ import {
  * 上传会传到OSS，使用OssUploader来上传
  * 支持使用网络图片
  * 
- * 用法：<SingleImageUploadInput ossType='xxx' fieldMeta={field} />
+ * 用法：<SingleImageUploadInput ossType='xxx' />
  * 
  * props: {
  *   ossType: 必选。CONTRAST_UPLOAD_IMAGE / MONEY_IMAGE / ...
- *   fieldMeta: 必选。后台返回的列定义，自定义渲染时传进来
  *   width: 可选，图片宽度
  * }
  */
@@ -27,13 +26,10 @@ const SingleImageUploadInput = props => {
     return null;
   }
 
-  const { ossType, value, onChange, fieldMeta, width = 100 } = props;
+  const { ossType, value, onChange, width = 100 } = props;
 
   if (!ossType) {
     throw new Error('ossType不能为空!');
-  }
-  if (!fieldMeta) {
-    throw new Error('fieldMeta不能为空!');
   }
 
   const [ imageUrl, setImageUrl ] = useState(value);

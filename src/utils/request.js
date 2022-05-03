@@ -1,10 +1,10 @@
 /**
  * request 网络请求工具
- * 更详细的 api 文档: https://github.com/umijs/umi-request
+ * 更详细的 api 文档: https://github.com/umijs/umi-request
  */
 /*
 用法：
-如果有场景返回的数据不是标准结构，不需要自动解析返回数据，请求时加上此参数：rawResponse，就会返回原始的response
+如果有场景返回的数据不是标准结构，不需要自动解析返回数据，请求时加上此参数：rawResponse: true，就会返回原始的response
 然后可以这样：response.status, response.statusText, response.json()等
 
 注意：参数已经优化过，get和post时的参数都叫data
@@ -25,10 +25,10 @@ request
     console.log(error);
   });
 
-// 也可将 URL 的参数放到 options.params 里
+// 也可将 URL 的参数放到 options.data 里
 request
   .get('/api/v1/xxx', {
-    params: {
+    data: {
       id: 1,
     },
   })
@@ -108,10 +108,28 @@ const request = extend({
   credentials: 'include', // 默认请求是否带上cookie
 });
 
+const trimData = options => {
+  const { data } = options;
+  if (!data) {
+    return;
+  }
+
+  const keys = Object.keys(data);
+  keys.forEach(key => {
+    if (data[key] === undefined || data[key] === null || data[key] === '') {
+      delete data[key];
+    }
+  });
+
+  options.data = data;
+};
+
 request.use(async (ctx, next) => {
   const { req } = ctx;
   const { options } = req;
   const isPost = options.method.toUpperCase() == 'POST';
+
+  trimData(options);
 
   if (isPost) {
     const data = {
