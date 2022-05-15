@@ -351,9 +351,12 @@ const parsePageInfo = (
     ellipsisFieldList = [],
     operationList = [],
     showId = false,
+    showCreateTime = false,
+    showModifyTime = false,
     listRenderer = {},
     editRenderer = {},
     filterFieldMap = {},
+    labels={},
     hideInListFieldList = [],
     updateable: updateableFirst,
     deleteable: deleteableFirst,
@@ -403,7 +406,7 @@ const parsePageInfo = (
       customEditRenderer: editRenderer[field.name],
       customListRenderer: listRenderer[field.name],
   
-      title: field.label,
+      title: labels[field.name] || field.label,
       tooltip: field.desc && field.desc.length > 0 ? field.desc : null,
       dataIndex: field.name,
       valueType: parseValueType(field.type, field.len),
@@ -490,6 +493,30 @@ const parsePageInfo = (
     }),
   );
 
+  const createTimeColumn = c({
+    label: '创建时间',
+    name: 'createTime',
+    filtered: false,
+    renderName: 'createTimeText',
+  });
+  const modifyTimeColumn = c({
+    label: '最后更新时间',
+    name: 'modifyTime',
+    filtered: false,
+    renderName: 'modifyTimeText',
+  });
+
+  if (showCreateTime) {
+    listColumns.push(createTimeColumn);
+  } else {
+    detailColumns.push(createTimeColumn);
+  }
+  if (showModifyTime) {
+    listColumns.push(modifyTimeColumn);
+  } else {
+    detailColumns.push(modifyTimeColumn);
+  }
+
   listColumns.push({
     title: '操作',
     dataIndex: 'option',
@@ -525,7 +552,7 @@ const parsePageInfo = (
 
       //多个渲染成下拉，单个才做按钮
       if (opArr.length === 0) {
-        return '无';
+        return '';
       }
       if (opArr.length > 1) {
         return _renderOpColumnsAsDropDown(opArr, record, actionRef, pageInfo);
@@ -572,23 +599,6 @@ const parsePageInfo = (
   });
 
   const searchEnable = fieldList.filter((f) => f.filtered).length > 0;
-
-  detailColumns.push(
-    c({
-      label: '创建时间',
-      name: 'createTime',
-      filtered: false,
-      renderName: 'createTimeText',
-    }),
-  );
-  detailColumns.push(
-    c({
-      label: '最后更新时间',
-      name: 'modifyTime',
-      filtered: false,
-      renderName: 'modifyTimeText',
-    }),
-  );
 
   const pageInfo = {
     name,

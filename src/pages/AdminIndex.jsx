@@ -2,6 +2,7 @@ import { Avatar, Card, Col, Skeleton, Row, Statistic } from 'antd';
 import React from 'react';
 import { Link } from 'umi';
 import { PageContainer } from '@ant-design/pro-layout';
+import { AuthorizedComponent } from '@/utils/coryAuthority';
 
 const PageHeaderContent = () => {
   const loading = window.USER;
@@ -55,6 +56,7 @@ function Index() {
             }}
           >
             Box1
+            <AuthorizedComponent path='/admin'>This is an AuthorizedComponent.</AuthorizedComponent>
           </Card>
           <Card
             bodyStyle={{

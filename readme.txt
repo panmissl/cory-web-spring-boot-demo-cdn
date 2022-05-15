@@ -23,6 +23,13 @@
 >
 </Keyevent>
 
+带权限的组件：
+  场景：渲染一个带权限的组件。比如在列表页面，某个按钮只有某个权限的用户或角色才能看到。或者某个div之类的，也是一样。
+  用法：使用coryAuthority里的AuthorizedComponent组件。
+  举例：
+    import { AuthorizedComponent } from '@/utils/coryAuthority';
+    <AuthorizedComponent path='/admin'>This is an AuthorizedComponent.</AuthorizedComponent>
+
 富文本编辑器：https://braft.margox.cn/
 集成到表单中
 没有外边框处理：加样式：https://github.com/margox/braft-editor/issues/564
@@ -49,10 +56,10 @@
     //其它import请自行引入
 
     const Page = () => {
+      const [ form ] = Form.useForm();
       const [ user, setUser ] = useState();
       const [ actionRef, setActionRef ] = useState();
       const [ roleModalVisible, setRoleModalVisible ] = useState(false);
-      const [ roleFormInitialValues, setRoleFormInitialValues ] = useState(null);
 
       const startChangeRole = (record, actionRef) => {
         setUser(record);
@@ -64,11 +71,13 @@
             name: u.name,
             phone: u.phone,
           };
+
           log('init values', initValues);
-          setRoleFormInitialValues(initValues);
+
+          form.setFieldsValue(initValues);
           setRoleModalVisible(true);
         });
-      }
+      };
 
       const submitChangeRole = (values) => {
         log(values);
@@ -86,7 +95,7 @@
       const cancelChangeRole = () => {
         setUser(null);
         setRoleModalVisible(false);
-        setRoleFormInitialValues(null);
+        form.resetFields();
       };
 
       return (
@@ -97,8 +106,8 @@
             operationList={[{label: '修改角色', handler: (record, actionRef) => startChangeRole(record, actionRef), icon: <UserSwitchOutlined />}]}
           />
 
-          <Modal title="修改角色" visible={roleModalVisible} footer={null} closable={false} maskClosable={false}>
-            <Form {...layout} onFinish={submitChangeRole} initialValues={roleFormInitialValues}>
+          <Modal title="修改角色" visible={roleModalVisible} footer={null} closable={false} maskClosable={false} destroyOnClose={true}>
+            <Form {...layout} onFinish={submitChangeRole} form={form}>
               <Form.Item name="role" label="角色" rules={[{required: true}]}>
                 <Select placeholder="请选择角色">
                   {getEnumDataSource('WxUserRole').map(e => <Option key={e.value} value={e.value}>{e.label}</Option>)}
