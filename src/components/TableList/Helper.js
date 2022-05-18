@@ -354,6 +354,7 @@ const parsePageInfo = (
     showCreateTime = false,
     showModifyTime = false,
     listRenderer = {},
+    detailRenderer = {},
     editRenderer = {},
     filterFieldMap = {},
     labels={},
@@ -436,7 +437,15 @@ const parsePageInfo = (
   const editColumns = fieldList
     .filter((f) => f.showable && f.updateable && editRenderer[f.name] !== false)
     .map((field) => c(field));
-  const detailColumns = fieldList.filter((f) => f.showable).map((field) => c(field));
+  const detailColumns = fieldList
+    .filter((f) => f.showable)
+    .map((field) => {
+      const detailCol = c(field);
+      if (detailRenderer && detailRenderer[field.name]) {
+        detailCol.render = detailRenderer[field.name];
+      }
+      return detailCol;
+    });
 
   if (showId) {
     listColumns.splice(

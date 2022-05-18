@@ -1,5 +1,5 @@
 import { useEffect, useState, Fragment } from 'react';
-import { Image, Button, Popconfirm, Input } from 'antd';
+import { Image, Button, Popconfirm, Input, Tooltip } from 'antd';
 import OssUploader from '@/components/OssUploader';
 import { log } from '@/utils/utils';
 import {
@@ -26,7 +26,7 @@ const SingleImageUploadInput = props => {
     return null;
   }
 
-  const { ossType, value, onChange, width = 100 } = props;
+  const { ossType, value, onChange, width = 50 } = props;
 
   if (!ossType) {
     throw new Error('ossType不能为空!');
@@ -40,7 +40,7 @@ const SingleImageUploadInput = props => {
 
   const renderImage = () => {
     if (!imageUrl) {
-      return <Fragment>请上传图片</Fragment>;
+      return null;
     }
     return <Image width={width} src={imageUrl} />;
   };
@@ -49,21 +49,21 @@ const SingleImageUploadInput = props => {
     <Fragment>
       <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center'}}>
         <OssUploader ossType={ossType} success={url => setImageUrl(url)} />
-        <Input style={{marginLeft: '8px'}} value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="可以直接指定网络图片" />
+        <Input style={{marginLeft: '4px'}} value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="指定网络图片" />
+        {imageUrl && (
+          <Popconfirm
+            title="确认删除?"
+            onConfirm={() => setImageUrl(null)}
+            okText="删除"
+          >
+            <Tooltip title='删除'><Button style={{marginLeft: '4px', padding: '0 4px'}} danger icon={<DeleteOutlined />}></Button></Tooltip>
+          </Popconfirm>
+        )}
+        <div style={{marginLeft: '4px'}}>
+          {renderImage()}
+        </div>
       </div>
 
-      {imageUrl && (
-        <Popconfirm
-          title="确认删除?"
-          onConfirm={() => setImageUrl(null)}
-          okText="删除"
-        >
-          <Button className='margin-left-8' danger icon={<DeleteOutlined />}>删除</Button>
-        </Popconfirm>
-      )}
-      <div>
-        {renderImage()}
-      </div>
     </Fragment>
   );
 };

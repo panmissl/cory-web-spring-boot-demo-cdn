@@ -56,6 +56,7 @@
     //其它import请自行引入
 
     const Page = () => {
+      const [ loading, setLoading ] = useState(false);
       const [ form ] = Form.useForm();
       const [ user, setUser ] = useState();
       const [ actionRef, setActionRef ] = useState();
@@ -80,8 +81,10 @@
       };
 
       const submitChangeRole = (values) => {
+        setLoading(true);
         log(values);
         request.post(ctx + 'ajax/xxx/xxx/changeRole', {data: {...values, id: user.id}}).then(success => {
+          setLoading(false);
           if (success) {
             message.success('角色修改成功');
             actionRef.current.reload();
@@ -107,33 +110,35 @@
           />
 
           <Modal title="修改角色" visible={roleModalVisible} footer={null} closable={false} maskClosable={false} destroyOnClose={true}>
-            <Form {...layout} onFinish={submitChangeRole} form={form}>
-              <Form.Item name="role" label="角色" rules={[{required: true}]}>
-                <Select placeholder="请选择角色">
-                  {getEnumDataSource('WxUserRole').map(e => <Option key={e.value} value={e.value}>{e.label}</Option>)}
-                </Select>
-              </Form.Item>
-              <Form.Item name="name" label="姓名" rules={[{required: true}]}>
-                <Input placeholder='请输入姓名' />
-              </Form.Item>
-              <Form.Item noStyle shouldUpdate>
-                {({ getFieldValue }) =>
-                  (getFieldValue('role') === 'A') ? (
-                    <Form.Item name="phone" label="电话" rules={[{required: true}]}>
-                      <Input placeholder='请输入电话' />
-                    </Form.Item>
-                  ) : null
-                }
-              </Form.Item>
-              <Form.Item {...tailLayout}>
-                <Button type="primary" htmlType="submit">
-                  保存
-                </Button>
-                <Button type="normal" onClick={cancelChangeRole} className="margin-left-8">
-                  取消
-                </Button>
-              </Form.Item>
-            </Form>
+            <Spin spinning={loading}>
+              <Form {...layout} onFinish={submitChangeRole} form={form}>
+                <Form.Item name="role" label="角色" rules={[{required: true}]}>
+                  <Select placeholder="请选择角色">
+                    {getEnumDataSource('WxUserRole').map(e => <Option key={e.value} value={e.value}>{e.label}</Option>)}
+                  </Select>
+                </Form.Item>
+                <Form.Item name="name" label="姓名" rules={[{required: true}]}>
+                  <Input placeholder='请输入姓名' />
+                </Form.Item>
+                <Form.Item noStyle shouldUpdate>
+                  {({ getFieldValue }) =>
+                    (getFieldValue('role') === 'A') ? (
+                      <Form.Item name="phone" label="电话" rules={[{required: true}]}>
+                        <Input placeholder='请输入电话' />
+                      </Form.Item>
+                    ) : null
+                  }
+                </Form.Item>
+                <Form.Item {...tailLayout}>
+                  <Button type="primary" htmlType="submit">
+                    保存
+                  </Button>
+                  <Button type="normal" onClick={cancelChangeRole} className="margin-left-8">
+                    取消
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Spin>
           </Modal>
         </PageContainer>
       );

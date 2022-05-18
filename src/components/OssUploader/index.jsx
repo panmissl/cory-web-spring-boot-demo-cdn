@@ -1,4 +1,4 @@
-import { message, Upload, Button } from 'antd';
+import { message, Upload, Button, Tooltip } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import request from '@/utils/request';
@@ -118,7 +118,7 @@ const OssUploader = props => {
       customRequest={doUpload}
       showUploadList={false}
     >
-      <Button icon={<UploadOutlined />} loading={loading}>点击上传</Button>
+      <Tooltip title='点击上传图片'><Button icon={<UploadOutlined />} loading={loading}></Button></Tooltip>
     </Upload>
   );
 };

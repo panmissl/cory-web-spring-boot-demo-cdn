@@ -3,7 +3,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import ProTable from '@ant-design/pro-table';
 import { Button, Drawer, message, Upload, Tooltip } from 'antd';
-import React, { Fragment, useMemo, useRef, useState } from 'react';
+import React, { Fragment, useMemo, useRef, useState, useEffect } from 'react';
 import { parsePageInfo, processValues } from './Helper';
 import { doDelete, doList, doSave } from './service';
 import EditForm from './Form';
@@ -68,6 +68,7 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     showCreateTime=true/false 是否在列表显示创建时间字段，默认不显示
  *     showModifyTime=true/false 是否在列表显示最后更新时间字段，默认不显示
  *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。
+ *     detailRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。默认情况detail和list一样，如果不同可以指定，优先级最高
  *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn。如果renderer传false，则不显示此字段，提交时也不会提交此字段
  *     filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  *     hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
@@ -76,6 +77,8 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     createable: 是否可新建。优先级比@Model里设置的高
  *     updateable: 是否可修改。优先级比@Model里设置的高
  *     deleteable: 是否可删除。优先级比@Model里设置的高
+ *     reset: 从外部控制重新加载列表：页码跳回第一页。它是一个数字，当数字变化时重新加载。使用示例：一开始设置为1，需要重新加载时，将其加1。可选，如果不从外部控制重新加载不用设置。
+ *     reload: 从外部控制重新加载列表：使用当前页码。它是一个数字，当数字变化时重新加载。使用示例：一开始设置为1，需要重新加载时，将其加1。可选，如果不从外部控制重新加载不用设置。
  *     richText: 是否富文本编辑器。优先级比@Model里设置的高
  *     //忽略此行：uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。参数(参见：RichEditor)：object: {file(文件体), progress(Fn(int progress)), libraryId(String), success(Fn(res))[res须为一个包含已上传文件url属性的对象], error(Fn(err))}
  *     uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。两个参数：file: 上传的文件，successCallback(url)：上传成功后，回调到系统里，系统做处理（添加到富文本里），参数是url。一般可以用OssUploader导出的uploadToOss方法即可
@@ -126,7 +129,7 @@ const TableList = (props) => {
   const toolbar = [];
   let toolbarIndex = 1;
 
-  const { updateable } = props;
+  const { updateable, reset, reload } = props;
   let { createable } = props;
   if (createable === undefined || createable === null) {
     createable = pageInfo.createable;
@@ -209,6 +212,20 @@ const TableList = (props) => {
       }
     });
   }
+
+  useEffect(() => {
+    log('reset changed', reset);
+    if (actionRef && actionRef.current && actionRef.current.reset) {
+      actionRef.current.reset();
+    }
+  }, [reset]);
+
+  useEffect(() => {
+    log('reload changed', reload);
+    if (actionRef && actionRef.current && actionRef.current.reload) {
+      actionRef.current.reload();
+    }
+  }, [reload]);
 
   return (
     <Fragment>
