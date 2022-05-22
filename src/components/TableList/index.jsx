@@ -2,7 +2,7 @@ import { log } from '@/utils/utils';
 import { PlusOutlined } from '@ant-design/icons';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import ProTable from '@ant-design/pro-table';
-import { Button, Drawer, message, Upload, Tooltip } from 'antd';
+import { Button, Drawer, message, Upload, Tooltip, Popconfirm } from 'antd';
 import React, { Fragment, useMemo, useRef, useState, useEffect } from 'react';
 import { parsePageInfo, processValues } from './Helper';
 import { doDelete, doList, doSave } from './service';
@@ -73,7 +73,7 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  *     hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
  *     labels: {column1: 'label1', column2: 'label2'} 自定义字段的label。优先级比@Field里设置的高
- *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, tooltip: String(可选), upload: true/false, uploadProps: {}}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
+ *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, tooltip: String(可选，有confirm时会被忽略), upload: true/false, uploadProps: {}, confirm: true/false(可选，有upload时会被忽略), confirmText: ''}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
  *     createable: 是否可新建。优先级比@Model里设置的高
  *     updateable: 是否可修改。优先级比@Model里设置的高
  *     deleteable: 是否可删除。优先级比@Model里设置的高
@@ -114,6 +114,8 @@ const handleDelete = async (id, actionRef, pageInfo) => {
     upload: true,
     uploadProps,
     loading: uploadLoading,
+    confirm: true, 
+    confirmText: '',
   }];
  */
 const TableList = (props) => {
@@ -181,13 +183,33 @@ const TableList = (props) => {
             )}
           </Upload>,
         );
+      } else if (button.confirm) {
+        toolbar.push((
+          <Popconfirm
+            key={toolbarIndex++}
+            title={button.confirmText}
+            onConfirm={() => button.handler(actionRef)}
+            //onCancel={cancel}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Button
+              type={button.type || 'normal'}
+              danger={button.danger || false}
+              loading={button.loading || false}
+              icon={button.icon}
+            >
+              {button.label}
+            </Button>
+          </Popconfirm>
+        ));
       } else {
         toolbar.push(
           button.tooltip ? (
             <Tooltip title={button.tooltip}>
               <Button
                 key={toolbarIndex++}
-                type={button.type}
+                type={button.type || 'normal'}
                 onClick={() => button.handler(actionRef)}
                 danger={button.danger || false}
                 loading={button.loading || false}
