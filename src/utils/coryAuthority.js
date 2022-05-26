@@ -112,3 +112,9 @@ export const AuthorizedComponent = props => {
   }
   return props.children;
 };
+
+/**
+ * 判断是否有权限
+ * @param path 以/开头，用来判断是否有权限。
+ */
+export const isAuthorized = path => _isAuthorized(path);
