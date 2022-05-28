@@ -70,6 +70,7 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     listRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。
  *     detailRenderer: {column1: renderer, column2: renderer} renderer的参数：(value, record)。默认情况detail和list一样，如果不同可以指定，优先级最高
  *     editRenderer: {column1: renderer, column2: renderer} renderer的参数：column。字段相关选项。来源于window.USER.modelMetaList。参见Helper.renderColumn。如果renderer传false，则不显示此字段，提交时也不会提交此字段
+ *     filterRenderer: {column1: {renderer, transform(可选)}, column2: {renderer, transform(可选)}} renderer的参数：(item, config, form)。config: { type, defaultRender, formItemProps, fieldProps, ...rest }, transform的参数：value: any，返回{key1: val1, key2: val2}，用来转换输入得到的值。renderer注意事项：如果里面要用动态的数据，比如远程加载数据渲染成Select的下拉列表，需要用useRef来保存，不能用useState，见下方的示例。官方文档：https://procomponents.ant.design/components/table/?current=1&pageSize=5#%E6%90%9C%E7%B4%A2%E8%A1%A8%E5%8D%95%E8%87%AA%E5%AE%9A%E4%B9%89
  *     filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  *     hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
  *     labels: {column1: 'label1', column2: 'label2'} 自定义字段的label。优先级比@Field里设置的高
@@ -117,6 +118,32 @@ const handleDelete = async (id, actionRef, pageInfo) => {
     confirm: true, 
     confirmText: '',
   }];
+
+  filterRenderer示例：两个例子：一个是日期选择框，但提交时需要将日期转为月份，此时要用transform，一个是下拉列表，需要远程加载列表为下拉数据，此时要用useRef
+  
+  const selectListRef = useRef();
+  
+  useEffect(() => {
+    request.get(`${ctx}ajax/xx/xx/listData?pageSize=1000`).then(p => selectListRef.current = p.list);
+  }, []);
+
+  return (
+    <TableList 
+      model="com.cory.model.Xxx" 
+      showId={true} 
+      filterRenderer={{
+        xxxId: {
+          renderer: () => <Select placeholder="请选择">{(selectListRef.current || []).map(e => <Option key={e.id} value={e.id}>{e.name}</Option>)}</Select>,
+        },
+        month: {
+          renderer: () => <DatePicker picker="month" />,
+          transform: val => ({month: val ? val.substr(0, 7) : val}),
+        },
+      }}
+    />
+  );
+
+  filterRenderer示例 - END
  */
 const TableList = (props) => {
   const [editModal, setEditModal] = useState({ visible: false, isCreate: false, record: null });

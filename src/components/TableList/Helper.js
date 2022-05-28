@@ -357,6 +357,7 @@ const parsePageInfo = (
     detailRenderer = {},
     editRenderer = {},
     filterFieldMap = {},
+    filterRenderer = {},
     labels={},
     hideInListFieldList = [],
     updateable: updateableFirst,
@@ -490,6 +491,32 @@ const parsePageInfo = (
   });
   if (rangeColumns.length > 0) {
     rangeColumns.forEach(({ column, index }) => listColumns.splice(index, 0, column));
+  }
+  //自定义过滤条件渲染
+  const filterColumns = Object.keys(filterRenderer);
+  if (filterColumns.length > 0) {
+    const arr = [];
+    listColumns.forEach((c, index) => {
+      if (filterColumns.indexOf(c.dataIndex) < 0) {
+        return;
+      }
+      c.hideInSearch = true;
+      const {renderer, transform} = filterRenderer[c.dataIndex];
+      arr.push({
+        index: index,
+        column: {
+          ...c,
+          hideInTable: true,
+          hideInSearch: false,
+          dataIndex: c.dataIndex,
+          renderFormItem: renderer,
+          transform: transform,
+        },
+      });
+    });
+    if (arr.length > 0) {
+      arr.forEach(({ column, index }) => listColumns.splice(index, 0, column));
+    }
   }
 
   editColumns.splice(
