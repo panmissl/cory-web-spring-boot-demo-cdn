@@ -83,6 +83,7 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     richText: 是否富文本编辑器。优先级比@Model里设置的高
  *     //忽略此行：uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。参数(参见：RichEditor)：object: {file(文件体), progress(Fn(int progress)), libraryId(String), success(Fn(res))[res须为一个包含已上传文件url属性的对象], error(Fn(err))}
  *     uploadHandler 可选。有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。两个参数：file: 上传的文件，successCallback(url)：上传成功后，回调到系统里，系统做处理（添加到富文本里），参数是url。一般可以用OssUploader导出的uploadToOss方法即可
+ *     proTableProps 可选。ProTable的原生属性参数，会传递到ProTable上面。比如需要可以嵌套的表格时，就可以设置expandable属性
  * 
  * toolbar上传例子：注意onChange里成功后的刷新
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -158,7 +159,7 @@ const TableList = (props) => {
   const toolbar = [];
   let toolbarIndex = 1;
 
-  const { updateable, reset, reload } = props;
+  const { updateable, reset, reload, proTableProps } = props;
   let { createable } = props;
   if (createable === undefined || createable === null) {
     createable = pageInfo.createable;
@@ -278,7 +279,8 @@ const TableList = (props) => {
 
   return (
     <Fragment>
-      <ProTable
+      <ProTable 
+        {...(proTableProps || {})}
         //headerTitle="查询表格"
         pagination={{
           ...DEFAULT_PAGINATION,
