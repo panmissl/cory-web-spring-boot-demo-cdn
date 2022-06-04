@@ -97,7 +97,7 @@ const requireTip = (type) => {
  * @param {*} fieldJavaType 字段Java类型，比如：java.lang.String, java.lang.Integer等
  */
 const buildEnumOptions = (fieldJavaType, isValueEnum) => {
-  const arr = getEnumDataSource(fieldJavaType);
+  const arr = getEnumDataSource(fieldJavaType, true);
   log('arr', arr);
 
   if (isValueEnum) {
