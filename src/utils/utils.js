@@ -62,8 +62,9 @@ export const error = (...msg) => DEBUG && console.error(msg);
  * 获取数据字典编辑器的fieldMeta属性
  * @param {*} modelClass 后台的model类。比如：User。全称简称皆可，如果是简称会自动拼接成：com.cory.model.User
  * @param {*} fieldName model类里的属性，驼峰形式。比如：userLevel
+ * @param {*} hideEmptyItem true/false，默认会添加一个“无”的选项，如果想要隐藏，将此参数传为true，不传或传false都会添加
  */
-export const getDatadictFieldMeta = (modelClass, fieldName) => {
+export const getDatadictFieldMeta = (modelClass, fieldName, hideEmptyItem) => {
   if (!modelClass.startsWith('com.cory')) {
     modelClass = 'com.cory.model.' + modelClass;
   }
@@ -79,7 +80,7 @@ export const getDatadictFieldMeta = (modelClass, fieldName) => {
   }
   return {
     fieldType: field.type,
-    dataDictList: field.dataDictList,
+    dataDictList: hideEmptyItem === true ? field.dataDictList : [{description: "-- 无 --", sn: 0, value: ""}, ...field.dataDictList],
     datadictTypeValue: field.datadictTypeValue,
   };
 };
@@ -87,9 +88,10 @@ export const getDatadictFieldMeta = (modelClass, fieldName) => {
 /**
  * 获取枚举类数据源
  * @param {*} enumClassName 枚举类型。后端定义好的，比如：UserType。全称简称皆可，如果是简称会自动拼接成：com.cory.enums.UserType。因此用户的枚举尽量也放在包：com.cory.enums下，如果是自定义包则这里要传全称。
+ * @param {*} hideEmptyItem true/false，默认会添加一个“无”的选项，如果想要隐藏，将此参数传为true，不传或传false都会添加
  * @returns 
  */
-export const getEnumDataSource = enumClassName => {
+export const getEnumDataSource = (enumClassName, hideEmptyItem) => {
   if (!enumClassName.startsWith('com.cory')) {
     enumClassName = 'com.cory.enums.' + enumClassName;
   }
@@ -112,6 +114,9 @@ export const getEnumDataSource = enumClassName => {
     const order = labelOrder[label];
     return { label, value, order };
   });
+  if (hideEmptyItem !== true) {
+    arr.push({ label: "-- 无 --", value: '', order: 0 });
+  }
   arr = arr.sort((i1, i2) => i1.order - i2.order);
   return arr;
 };
