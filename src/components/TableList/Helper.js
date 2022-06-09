@@ -351,6 +351,7 @@ const parsePageInfo = (
     ellipsisFieldList = [],
     operationList = [],
     showId = false,
+    filterById = false,
     showCreateTime = false,
     showModifyTime = false,
     listRenderer = {},
@@ -449,14 +450,18 @@ const parsePageInfo = (
     });
 
   if (showId) {
+    const idCol = c({
+      label: 'ID',
+      name: 'id',
+      filtered: false,
+    });
+    if (filterById === true) {
+      idCol.hideInSearch = false;
+    }
     listColumns.splice(
       0,
       0,
-      c({
-        label: 'ID',
-        name: 'id',
-        filtered: false,
-      }),
+      idCol,
     );
   }
 
