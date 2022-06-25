@@ -1,10 +1,9 @@
 import TableList from '@/components/TableList';
 import { PageContainer } from '@ant-design/pro-layout';
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, message, Radio, Card, Input } from 'antd';
+import { Button, Modal, message, Radio, Input, Tooltip } from 'antd';
 import { AuditOutlined, SafetyOutlined } from '@ant-design/icons';
 import request from '@/utils/request';
-import moment from 'moment';
 
 const radioStyle = {
   display: 'block',
@@ -95,6 +94,14 @@ const Page = () => {
     }
   };
 
+  const renderLastLogonSuccess = (value, record) => {
+    if (!record.lastLogonTime) {
+      return '还未登录过';
+    }
+    const time = <span style={{color: value ? 'green' : 'red'}}>{record.lastLogonTime}</span>;
+    return <Tooltip title={`登录${value ? '成功' : '失败'}(${record.lastLogonTime}，${record.lastLogonIp})`}>{time}</Tooltip>;
+  };
+
   return (
     <PageContainer>
       <TableList
@@ -102,8 +109,11 @@ const Page = () => {
         showId={true}
         operationList={operationList}
         editRenderer={{ lastLogonTime: false, lastLogonIp: false, lastLogonSuccess: false }}
-        listRenderer={{ lastLogonSuccess: (v, record) => record.lastLogonTime ? `登录${v ? '成功' : '失败'}(${record.lastLogonTime}，${record.lastLogonIp})` : '还未登录过'}}
-        hideInListFieldList={['thirdpartyId', 'thirdpartyType', 'extraInfo', 'lastLogonTime', 'lastLogonIp']}
+        listRenderer={{ 
+          lastLogonSuccess: (v, record) => renderLastLogonSuccess(v, record),
+          userName: (v, record) => record.roles && record.roles.length > 0 ? `${v}(${record.roles[0].description}[${record.roles[0].name}])` : v,
+        }}
+        hideInListFieldList={['status', 'type', 'level', 'thirdpartyId', 'thirdpartyType', 'extraInfo', 'lastLogonTime', 'lastLogonIp']}
       />
 
       {currentUser && (
