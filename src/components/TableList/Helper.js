@@ -185,8 +185,11 @@ const renderColumnInput = (column) => {
           width: '100%',
         }}
         disabled={!column.updateable}
+        showSearch
+        optionFilterProp="children"
+        allowClear
       >
-        {buildEnumOptions(column.fieldJavaType)}
+        {buildEnumOptions(column.fieldJavaType)}{'aaaa'}
       </Select>
     );
   }

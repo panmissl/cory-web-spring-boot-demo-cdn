@@ -37,7 +37,7 @@ const DatadictEditor = props => {
   }, [ val ]);
 
   return (
-    <Select value={val} onChange={v => setVal(v)}>
+    <Select value={val} onChange={v => setVal(v)} showSearch optionFilterProp="children" allowClear>
       {(fieldMeta.dataDictList || []).map(item => <Option key={item.value} value={item.value}>{item.description}</Option>)}
     </Select>
   );
