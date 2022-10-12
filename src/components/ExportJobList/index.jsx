@@ -54,7 +54,11 @@ const Component = (props) => {
         }
         return <Tooltip title={`导出错误：${r.errorMsg || '无'}`}>导出错误：{shortMsg}</Tooltip>;
       } else if (r.status === 'success') {
-        return <a href={r.downloadUrl} target='_blank'>点击下载</a>
+        if (r.downloadUrl && r.downloadUrl.length > 0 && r.downloadUrl !== '-') {
+          return <a href={r.downloadUrl} target='_blank'>点击下载</a>
+        } else {
+          return null;
+        }
       } else {
         return '请等待任务完成后下载';
       }
