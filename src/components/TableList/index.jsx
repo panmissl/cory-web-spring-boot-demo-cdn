@@ -74,6 +74,8 @@ const handleDelete = async (id, actionRef, pageInfo) => {
  *     filterRenderer: {column1: {renderer, transform(可选)}, column2: {renderer, transform(可选)}} renderer的参数：(item, config, form)。config: { type, defaultRender, formItemProps, fieldProps, ...rest }, transform的参数：value: any，返回{key1: val1, key2: val2}，用来转换输入得到的值。renderer注意事项：如果里面要用动态的数据，比如远程加载数据渲染成Select的下拉列表，需要用useRef来保存，不能用useState，见下方的示例。官方文档：https://procomponents.ant.design/components/table/?current=1&pageSize=5#%E6%90%9C%E7%B4%A2%E8%A1%A8%E5%8D%95%E8%87%AA%E5%AE%9A%E4%B9%89
  *     filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  *     hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
+ *     extraFieldInList: 列表额外的显示字段，显示那些模型里没有定义的字段，比如模型里定义了姓名和年龄字段，但需要显示电话字段。会加在现有字段后面，但放在操作字段前面。{column1: {label: 'xxx', renderer: () => xxx}, column2: {label: 'xxx', renderer: () => xxx}} renderer的参数：(value, record)。
+ *     extraFieldInDetail: 详情额外的显示字段，显示那些模型里没有定义的字段，比如模型里定义了姓名和年龄字段，但需要显示电话字段，{column1: {label: 'xxx', renderer: () => xxx}, column2: {label: 'xxx', renderer: () => xxx}} renderer的参数：(value, record)。
  *     labels: {column1: 'label1', column2: 'label2'} 自定义字段的label。优先级比@Field里设置的高
  *     toolbar: [{label: '', handler: (actionRef) => {}, type: 'primary | normal | dashed | text', danger: true/false, loading: true/false, icon: <SearchOutlined />, tooltip: String(可选，有confirm时会被忽略), upload: true/false, uploadProps: {}, confirm: true/false(可选，有upload时会被忽略), confirmText: ''}] 操作按钮列表，和“新建”放一起。如果指定了upload为true，则输出Upload组件包裹，实现文件上传，此时需要属性uploadProps，具体值见官网文档，onChange的回调里，除了官方的文档里的参数外，会另外加一个actionRef的参数，用来刷新列表
  *     createable: 是否可新建。优先级比@Model里设置的高

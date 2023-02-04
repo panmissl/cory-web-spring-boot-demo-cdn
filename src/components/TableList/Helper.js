@@ -362,6 +362,8 @@ const parsePageInfo = (
     editRenderer = {},
     filterFieldMap = {},
     filterRenderer = {},
+    extraFieldInList = {},
+    extraFieldInDetail = {},
     labels={},
     hideInListFieldList = [],
     updateable: updateableFirst,
@@ -436,9 +438,23 @@ const parsePageInfo = (
     return result;
   };
 
+  const buildExtraField = (fieldName, filedDefine) => {
+    //fieldDefine: {label, renderer}
+    const field = c({
+      name: fieldName,
+      label: filedDefine.label,
+      filtered: false,
+    });
+    field.render = (v, r) => filedDefine.renderer(v, r);
+    return field;
+  };
+
   const listColumns = fieldList
     .filter((f) => f.showable && hideInListFieldList.indexOf(f.name) < 0)
     .map((field) => c(field));
+  if (Object.keys(extraFieldInList).length > 0) {
+    Object.keys(extraFieldInList).forEach(f => listColumns.push(buildExtraField(f, extraFieldInList[f])));
+  }
   const editColumns = fieldList
     .filter((f) => f.showable && f.updateable && editRenderer[f.name] !== false)
     .map((field) => c(field));
@@ -451,6 +467,9 @@ const parsePageInfo = (
       }
       return detailCol;
     });
+  if (Object.keys(extraFieldInDetail).length > 0) {
+    Object.keys(extraFieldInDetail).forEach(f => detailColumns.push(buildExtraField(f, extraFieldInDetail[f])));
+  }
 
   if (showId) {
     const idCol = c({
