@@ -1,9 +1,10 @@
-import { Tabs, Menu, Dropdown, Button, Popconfirm } from 'antd';
+import { Tabs, Menu, Dropdown, Button, Popconfirm, Modal, Input, Form, Spin, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { connect, history } from 'umi';
-import { CloseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, PoweroffOutlined, FormOutlined } from '@ant-design/icons';
 import routes from '../../config/routes';
 import { log } from '@/utils/utils';
+import request from '@/utils/request';
 
 const { TabPane } = Tabs;
 
@@ -71,6 +72,12 @@ const PageTab = props => {
   const [ pages, setPages ] = useState();
   const [ activeKey, setActiveKey ] = useState();
 
+  const [ loading, setLoading ] = useState(false);
+  const [ changePasswordModalVisible, setChangePasswordModalVisible ] = useState(false);
+  const [ password, setPassword ] = useState();
+  const [ newPassword, setNewPassword ] = useState();
+  const [ passwordConfirm, setPasswordConfirm ] = useState();
+
   log('page tab', props.children, history.location.pathname);
   _addToPageTab(props.children);
 
@@ -121,7 +128,68 @@ const PageTab = props => {
     }
   };
 
+  const changePassword = () => {
+    setChangePasswordModalVisible(true);
+  };
+
+  const checkPassword = (pwd, fieldName) => {
+    if (!pwd) {
+      message.error(`请输入${fieldName}`);
+      return false;
+    }
+    if (pwd.length < 6 || pwd.length > 32) {
+      message.error(`${fieldName}长度在6-32个字符之间`);
+      return false;
+    }
+    return true;
+  }
+
+  const doChangePassword = () => {
+    if (!checkPassword(password, '原密码')) {
+      return;
+    }
+    if (!checkPassword(newPassword, '新密码')) {
+      return;
+    }
+    if (!checkPassword(passwordConfirm, '新密码确认')) {
+      return;
+    }
+    if (newPassword !== passwordConfirm) {
+      message.error('新密码和新密码确认不一致');
+      return;
+    }
+
+    setLoading(true);
+    log(`o: ${password}, n: ${newPassword}, c: ${passwordConfirm}`);
+
+    const url = `${ctx}ajax/base/user/changePassword`;
+    request.post(url, {data: {password, newPassword, passwordConfirm}}).then(success => {
+      setLoading(false);
+      if (success) {
+        message.success(`密码修改成功`);
+        closeChangePassword();
+      } else {
+        message.error(`密码修改失败`);
+      }
+    });
+  };
+
+  const closeChangePassword = () => {
+    setChangePasswordModalVisible(false);
+    setPassword(null);
+    setNewPassword(null);
+    setPasswordConfirm(null);
+  };
+
+  const userOpInfo = () => (
+    <>
+    <Button type='normal' icon={<FormOutlined />} onClick={() => changePassword()} style={{marginRight: '8px'}}>修改密码</Button>
+    <Popconfirm okText="退出" title='确认退出登录?' onConfirm={() => doLogout()}><Button type='normal' icon={<PoweroffOutlined />} danger>退出登录</Button></Popconfirm>
+    </>
+  );
+
   return (
+    <>
     <Tabs 
       hideAdd 
       activeKey={activeKey} 
@@ -133,7 +201,7 @@ const PageTab = props => {
         }
         history.push(key);
       }}
-      tabBarExtraContent={<Popconfirm okText="退出" title='确认退出登录?' onConfirm={() => doLogout()}><Button type='normal' icon={<PoweroffOutlined />} danger>退出登录</Button></Popconfirm>}
+      tabBarExtraContent={userOpInfo()}
     >
       {(pages || []).map(pane => {
         return (
@@ -147,6 +215,47 @@ const PageTab = props => {
         );
       })}
     </Tabs>
+    <Modal
+      width={640}
+      bodyStyle={{ padding: '32px 40px 48px' }}
+      destroyOnClose
+      title="修改密码"
+      visible={changePasswordModalVisible}
+      footer={
+        <>
+          <Button type="primary" onClick={() => doChangePassword()}>
+            确定
+          </Button>
+          <Button onClick={() => closeChangePassword()}>取消</Button>
+        </>
+      }
+      onCancel={() => closeChangePassword()}
+    >
+      <Spin spinning={loading}>
+        <Form.Item label="原密码">
+          <Input.Password
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="请输入原密码"
+          />
+        </Form.Item>
+        <Form.Item label="新密码">
+          <Input.Password
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="请输入新密码[长度在6-32位之间]"
+          />
+        </Form.Item>
+        <Form.Item label="新密码确认">
+          <Input.Password
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
+            placeholder="请输入新密码确认[长度在6-32位之间]"
+          />
+        </Form.Item>
+      </Spin>
+    </Modal>
+    </>
   );
 };
 
