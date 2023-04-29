@@ -286,7 +286,7 @@ const TableList = (props) => {
         {...(proTableProps || {})}
         //headerTitle="查询表格"
         pagination={{
-          ...DEFAULT_PAGINATION,
+          //...DEFAULT_PAGINATION, 不能放这个，否则分页会失效，why?
           pageSize: props.pageSize || DEFAULT_PAGINATION.pageSize,
         }}
         actionRef={actionRef}
