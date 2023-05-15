@@ -287,7 +287,8 @@ const TableList = (props) => {
         //headerTitle="查询表格"
         pagination={{
           //...DEFAULT_PAGINATION, 不能放这个，否则分页会失效，why?
-          pageSize: props.pageSize || DEFAULT_PAGINATION.pageSize,
+          //pageSize: props.pageSize || DEFAULT_PAGINATION.pageSize,
+          showSizeChanger: true,
         }}
         actionRef={actionRef}
         rowKey="_rowIndex"
