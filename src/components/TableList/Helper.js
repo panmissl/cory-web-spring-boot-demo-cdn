@@ -419,6 +419,7 @@ const parsePageInfo = (
       dataIndex: field.name,
       valueType: parseValueType(field.type, field.len),
       valueEnum: parseValueEnum(field),
+      hideInTable: hideInListFieldList.indexOf(field.name) >= 0 || !field.showable,
       hideInSearch: !_isFilterEnable(filterFieldMap[field.name], field.filtered),
       ellipsis: ellipsisFieldList.indexOf(field.name) >= 0,
     };
@@ -450,7 +451,6 @@ const parsePageInfo = (
   };
 
   const listColumns = fieldList
-    .filter((f) => f.showable && hideInListFieldList.indexOf(f.name) < 0)
     .map((field) => c(field));
   if (Object.keys(extraFieldInList).length > 0) {
     Object.keys(extraFieldInList).forEach(f => listColumns.push(buildExtraField(f, extraFieldInList[f])));
