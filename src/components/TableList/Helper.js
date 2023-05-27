@@ -476,6 +476,7 @@ const parsePageInfo = (
       label: 'ID',
       name: 'id',
       filtered: false,
+      showable: true,
     });
     if (filterById === true) {
       idCol.hideInSearch = false;
