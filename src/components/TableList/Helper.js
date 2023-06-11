@@ -572,14 +572,12 @@ const parsePageInfo = (
 
   if (showCreateTime) {
     listColumns.push(createTimeColumn);
-  } else {
-    detailColumns.push(createTimeColumn);
   }
+  detailColumns.push(createTimeColumn);
   if (showModifyTime) {
     listColumns.push(modifyTimeColumn);
-  } else {
-    detailColumns.push(modifyTimeColumn);
   }
+  detailColumns.push(modifyTimeColumn);
 
   listColumns.push({
     title: '操作',
