@@ -560,12 +560,14 @@ const parsePageInfo = (
   const createTimeColumn = c({
     label: '创建时间',
     name: 'createTime',
+    showable: true,    
     filtered: false,
     renderName: 'createTimeText',
   });
   const modifyTimeColumn = c({
     label: '最后更新时间',
     name: 'modifyTime',
+    showable: true,
     filtered: false,
     renderName: 'modifyTimeText',
   });
