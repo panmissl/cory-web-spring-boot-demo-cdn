@@ -14,6 +14,7 @@ import {
   Dropdown,
 } from 'antd';
 import RichEditor, { initRichEditorValue } from '@/components/RichEditor';
+import CodeEditor from '@/components/CodeEditor';
 import moment from 'moment';
 import React from 'react';
 import DatadictEditor from '@/components/form/DatadictEditor';
@@ -114,11 +115,14 @@ const buildEnumOptions = (fieldJavaType, isValueEnum) => {
 
 /**
  * 根据字段类型返回字段输入框。比如文本返回输入框，枚举返回下拉框
- * @param {*} column 字段定义：{ filedType, title, fieldLen, fieldJavaType, richText, uploadHandler(richText为true时需要) }
+ * @param {*} column 字段定义：{ filedType, title, fieldLen, fieldJavaType, richText, uploadHandler(richText为true时需要), code }
  */
 const renderColumnInput = (column) => {
   if (column.datadictTypeValue && column.datadictTypeValue.length > 0) {
     return <DatadictEditor fieldMeta={column} />;
+  }
+  if (column.code === true || column.code === 'true') {
+    return <CodeEditor fieldMeta={column} />;
   }
   if (
     column.fieldType == COLUMN_TYPE.INT ||
@@ -189,10 +193,11 @@ const renderColumnInput = (column) => {
         optionFilterProp="children"
         allowClear
       >
-        {buildEnumOptions(column.fieldJavaType)}{'aaaa'}
+        {buildEnumOptions(column.fieldJavaType)}
       </Select>
     );
   }
+  log('不支持的类型', column);
   notification.error({
     message: '错误',
     description: `不支持的类型：${column.fieldType}`,
@@ -211,6 +216,7 @@ const renderColumn = (column) => {
     fieldNullable: field.nullable,
     fieldLen: field.len,
     richText: field.richText,
+    code: field.code,
     datadictTypeValue: field.datadictTypeValue,
     uploadHandler: field.uploadHandler,//richText为true时需要
 
@@ -231,29 +237,35 @@ const renderColumn = (column) => {
 
   //rule START
   const rules = [];
-  if (false === column.fieldNullable) {
-    rules.push({
-      required: true,
-      message: `请${requireTip(column.fieldType)}${column.title}！`,
-    });
-  }
-  if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 0) {
-    rules.push({
-      max: column.fieldLen,
-      message: `最大长度为${column.fieldLen}！`,
-    });
-  }
-  if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT) {
-    rules.push({
-      type: 'integer',
-      message: `请输入数字！`,
-    });
-  }
-  if (column.fieldType == COLUMN_TYPE.DOUBLE) {
-    rules.push({
-      type: 'number',
-      message: `请输入数字！`,
-    });
+  if (column.customRules === false) {
+    //skip
+  } else if (column.customRules && column.customRules.length > 0) {
+    column.customRules.forEach(r => rules.push(r));
+  } else {
+    if (false === column.fieldNullable) {
+      rules.push({
+        required: true,
+        message: `请${requireTip(column.fieldType)}${column.title}！`,
+      });
+    }
+    if (column.fieldType == COLUMN_TYPE.VARCHAR && column.fieldLen > 0) {
+      rules.push({
+        max: column.fieldLen,
+        message: `最大长度为${column.fieldLen}！`,
+      });
+    }
+    if (column.fieldType == COLUMN_TYPE.INT || column.fieldType == COLUMN_TYPE.BIGINT) {
+      rules.push({
+        type: 'integer',
+        message: `请输入数字！`,
+      });
+    }
+    if (column.fieldType == COLUMN_TYPE.DOUBLE) {
+      rules.push({
+        type: 'number',
+        message: `请输入数字！`,
+      });
+    }
   }
   //rule END
 
@@ -338,11 +350,15 @@ const _renderRichText = (value, record, field) => (
   <div dangerouslySetInnerHTML={{ __html: value }} style={{ display: 'inline-block' }} />
 );
 
+const _renderCode = (value, record, field) => (
+  <div dangerouslySetInnerHTML={{ __html: value }} style={{ display: 'inline-block' }} />
+);
+
 /**
  * uploadHandler 有富文本编辑器，且需要上传文件时必须要，否则上传文件会报错。richText为true时需要。一般可以用OssUploader导出的uploadToOss方法即可
  * filterFieldMap: {c1: true/false} 为true则加过滤，为false则不加过滤。优先级比@Field里设置的高
  * hideInListFieldList: [column1, column2]。列表不显示此字段(只是列表，详情还是要显示的)
- * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, filterFieldMap = {}, hideInListFieldList, updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null }
+ * @param {*} param { model, ellipsisFieldList = [], operationList = [], showId = false, listRenderer = {}, editRenderer = {}, editLabel = {}, filterFieldMap = {}, hideInListFieldList, updateable: updateableFirst, deleteable: deleteableFirst, uploadHandler = null, extraListRenderer = {}, extraEditRenderer = {} }
  * @param {*} handleEditClick 点击编辑按钮时的处理器，参数：{visible: true, isCreate: false, record, }
  * @param {*} handleDelete 点击删除时的处理器，参数：{id, actionRef, pageInfo, }
  * @param {*} actionRef
@@ -360,6 +376,7 @@ const parsePageInfo = (
     listRenderer = {},
     detailRenderer = {},
     editRenderer = {},
+    editLabel={},
     filterFieldMap = {},
     filterRenderer = {},
     extraFieldInList = {},
@@ -369,6 +386,9 @@ const parsePageInfo = (
     updateable: updateableFirst,
     deleteable: deleteableFirst,
     uploadHandler = null,
+    rule = {},
+    extraListRenderer = {},
+    extraEditRenderer = {},
   },
   handleEditClick,
   handleDelete,
@@ -408,6 +428,7 @@ const parsePageInfo = (
       updateable: field.updateable,
       fieldLen: field.len,
       richText: field.richText,
+      code: field.code,
       datadictTypeValue: field.datadictTypeValue,
       dataDictList: field.dataDictList,
       uploadHandler: uploadHandler,
@@ -422,6 +443,7 @@ const parsePageInfo = (
       hideInTable: hideInListFieldList.indexOf(field.name) >= 0 || !field.showable,
       hideInSearch: !_isFilterEnable(filterFieldMap[field.name], field.filtered),
       ellipsis: ellipsisFieldList.indexOf(field.name) >= 0,
+      customRules: rule[field.name],
     };
 
     if (field.datadictTypeValue && field.datadictTypeValue.length > 0) {
@@ -430,6 +452,8 @@ const parsePageInfo = (
 
     if (listRenderer[field.name]) {
       result.render = (v, r) => listRenderer[field.name](v, r);
+    } else if (field.code === true || field.code === 'true') {
+      result.render = (value, record) => _renderCode(value, record, field);
     } else if (field.richText === true || field.richText === 'true') {
       result.render = (value, record) => _renderRichText(value, record, field);
     } else if (field.renderName && field.renderName.length > 0) {
@@ -451,6 +475,7 @@ const parsePageInfo = (
   };
 
   const listColumns = fieldList
+    .filter((f) => f.showable && hideInListFieldList.indexOf(f.name) < 0)
     .map((field) => c(field));
   if (Object.keys(extraFieldInList).length > 0) {
     Object.keys(extraFieldInList).forEach(f => listColumns.push(buildExtraField(f, extraFieldInList[f])));
@@ -581,6 +606,10 @@ const parsePageInfo = (
   }
   detailColumns.push(modifyTimeColumn);
 
+  if (editLabel) {
+    Object.keys(editLabel).forEach(name => editColumns.find(c => c.dataIndex === name).title = editLabel[name]);
+  }
+
   listColumns.push({
     title: '操作',
     dataIndex: 'option',
@@ -664,6 +693,47 @@ const parsePageInfo = (
 
   const searchEnable = fieldList.filter((f) => f.filtered).length > 0;
 
+  Object.keys(extraListRenderer).forEach(extra => {
+    const extranColumnDefine = extraListRenderer[extra];
+    const extraColumn = c({
+      type: 'VARCHAR',
+      javaType: 'String',
+      nullable: true,
+      updateable: true,
+      len: 1024,
+      richText: false,
+      code: false,
+      label: extranColumnDefine.label,
+      desc: extranColumnDefine.desc,
+      name: extra,
+      valueType: 'text',
+      filtered: false,
+    });
+    if (hideInListFieldList.indexOf(extra) < 0) {
+      listColumns.splice(extranColumnDefine.position || -1, 0, extraColumn);
+    }
+    detailColumns.splice(extranColumnDefine.position || -1, 0, extraColumn);
+  });
+
+  Object.keys(extraEditRenderer).forEach(extra => {
+    const extranColumnDefine = extraEditRenderer[extra];
+    const extraColumn = c({
+      type: 'VARCHAR',
+      javaType: 'String',
+      nullable: true,
+      updateable: true,
+      len: 1024,
+      richText: false,
+      code: false,
+      label: extranColumnDefine.label,
+      desc: extranColumnDefine.desc,
+      name: extra,
+      valueType: 'text',
+      filtered: false,
+    });
+    editColumns.splice(extranColumnDefine.position || -1, 0, extraColumn);
+  });
+
   const pageInfo = {
     name,
     listUrl,
@@ -681,8 +751,9 @@ const parsePageInfo = (
   };
 
   //详情链接
-  pageInfo.listColumns[0].render = (dom, entity) => {
-    return <a onClick={() => detailHandler(entity)}>{dom}</a>;
+  const firstColumnRender = pageInfo.listColumns[0].render;
+  pageInfo.listColumns[0].render = (value, record) => {
+    return <a onClick={() => detailHandler(record)}>{firstColumnRender ? firstColumnRender(value, record) : value}</a>;
   };
 
   log('pageInfo', pageInfo);
